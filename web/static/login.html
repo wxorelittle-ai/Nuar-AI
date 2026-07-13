@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МЭТР — вход</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cpath d='M4 4 L26 10 L26 14 L4 20 Z' fill='%23C9A227'/%3E%3Cpath d='M56 4 L34 10 L34 14 L56 20 Z' fill='%23C9A227'/%3E%3Crect x='26' y='8' width='8' height='8' rx='1.5' fill='%23C9A227'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{--graphite:#14171A;--graphite-2:#1C2024;--brass:#C9A227;--porcelain:#F5F1E8;--silver:#8B95A3;--line:#2B3036;--warn:#E5735E}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--graphite);color:var(--porcelain);font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .box{width:100%;max-width:360px;text-align:center}
+  .brand{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:26px}
+  .word{font-family:'Playfair Display',serif;font-size:26px;font-weight:500;letter-spacing:.12em}
+  .card{background:var(--graphite-2);border:1px solid var(--line);border-radius:14px;padding:28px;text-align:left}
+  h1{font-family:'Playfair Display',serif;font-weight:500;font-size:22px;margin-bottom:6px}
+  p.lead{color:var(--silver);font-size:14px;margin-bottom:20px}
+  label{display:block;font-size:13px;color:var(--silver);margin-bottom:7px}
+  input{width:100%;background:var(--graphite);border:1px solid var(--line);color:var(--porcelain);
+    padding:13px 14px;border-radius:8px;font-size:15px;outline:none}
+  input:focus{border-color:var(--brass)}
+  button{width:100%;margin-top:16px;background:var(--brass);color:var(--graphite);border:none;
+    padding:14px;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer}
+  button:hover{filter:brightness(1.06)}
+  .err{color:var(--warn);font-size:13.5px;margin-top:14px;display:none}
+  .err.on{display:block}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="brand">
+    <svg viewBox="0 0 60 24" width="46" height="18"><path d="M4 4 L26 10 L26 14 L4 20 Z" fill="#C9A227"></path><path d="M56 4 L34 10 L34 14 L56 20 Z" fill="#C9A227"></path><rect x="26" y="8" width="8" height="8" rx="1.5" fill="#C9A227"></rect></svg>
+    <span class="word">МЭТР</span>
+  </div>
+  <div class="card">
+    <h1>Вход в панель</h1>
+    <p class="lead">Приватная система управляющего. Введите пароль администратора.</p>
+    <form id="f">
+      <label for="pw">Пароль</label>
+      <input type="password" id="pw" autocomplete="current-password" autofocus>
+      <button type="submit">Войти</button>
+      <div class="err" id="err">Неверный пароль</div>
+    </form>
+  </div>
+</div>
+<script>
+  document.getElementById('f').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const err=document.getElementById('err'); err.classList.remove('on');
+    const resp = await fetch('/login', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({password: document.getElementById('pw').value})});
+    if(resp.ok){ location.href='/'; }
+    else { err.classList.add('on'); }
+  });
+</script>
+</body>
+</html>

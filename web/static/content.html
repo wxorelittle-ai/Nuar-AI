@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МЭТР — контент и публикации</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cpath d='M4 4 L26 10 L26 14 L4 20 Z' fill='%23C9A227'/%3E%3Cpath d='M56 4 L34 10 L34 14 L56 20 Z' fill='%23C9A227'/%3E%3Crect x='26' y='8' width='8' height='8' rx='1.5' fill='%23C9A227'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --graphite:#14171A;--graphite-2:#1C2024;--bottle:#0F2B25;--brass:#C9A227;--brass-dim:#8A6F1C;
+    --porcelain:#F5F1E8;--silver:#8B95A3;--line:#2B3036;--up:#2ECC8F;--warn:#E5735E;
+    --voice:'Playfair Display',Georgia,serif;--ui:'Inter',system-ui,-apple-system,sans-serif;--data:'JetBrains Mono',monospace;
+    --r-ctrl:8px;--r-panel:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--graphite);color:var(--porcelain);font-family:var(--ui);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:22px 24px 80px}
+  a{color:var(--brass);text-decoration:none}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:4px 0 26px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .brand .word{font-family:var(--voice);font-size:24px;font-weight:500;letter-spacing:.12em}
+  .nav a{font-size:14px;color:var(--silver)} .nav a:hover{color:var(--porcelain)}
+  .eyebrow{font-family:var(--data);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--brass-dim)}
+  h1{font-family:var(--voice);font-size:28px;font-weight:500;margin:6px 0 8px}
+  .lead{color:var(--silver);font-size:15px;margin-bottom:22px;max-width:74ch}
+
+  .card{background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-panel);padding:22px 24px;margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .field{display:flex;flex-direction:column;margin-bottom:14px}
+  .field.full{grid-column:1/-1}
+  label{font-size:12.5px;color:var(--silver);margin-bottom:6px}
+  input,select,textarea{background:var(--graphite);border:1px solid var(--line);color:var(--porcelain);
+    padding:11px 13px;border-radius:var(--r-ctrl);font-size:14px;outline:none;font-family:var(--ui);transition:border-color .15s}
+  input:focus,select:focus,textarea:focus{border-color:var(--brass)}
+  textarea{min-height:150px;resize:vertical;line-height:1.6}
+  .btn{font-family:var(--ui);font-size:14px;font-weight:500;padding:11px 18px;border-radius:var(--r-ctrl);
+    border:1px solid var(--line);background:transparent;color:var(--porcelain);cursor:pointer;transition:.15s}
+  .btn:hover{border-color:var(--brass)}
+  .btn.brass{background:var(--brass);color:var(--graphite);border-color:var(--brass)}
+  .btn.brass:hover{filter:brightness(1.06)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  .msg{font-size:13px;font-family:var(--data)} .msg.ok{color:var(--up)} .msg.err{color:var(--warn)}
+  .gen-hint{font-size:12px;color:#5a6472;margin-top:6px}
+  .mod{margin-top:14px}
+  .mod-head{font-family:var(--data);font-size:12px;letter-spacing:.5px;margin-bottom:8px}
+  .mod-head.ok{color:var(--up)} .mod-head.warn{color:var(--brass)} .mod-head.block{color:var(--warn)}
+  .issue{display:flex;gap:9px;align-items:flex-start;font-size:13px;padding:7px 0;border-top:1px solid var(--line)}
+  .issue .lvl{font-family:var(--data);font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:2px 7px;border-radius:20px;border:1px solid var(--line);white-space:nowrap;margin-top:1px}
+  .issue.block .lvl{color:var(--warn);border-color:rgba(229,115,94,.5)}
+  .issue.warn .lvl{color:var(--brass);border-color:rgba(201,162,39,.4)}
+  .issue .txt{color:#d8d4cb}
+
+  .ideas{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:6px 0 30px}
+  .idea{background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-panel);padding:16px 18px;display:flex;flex-direction:column}
+  .idea-top{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+  .idea-topic{font-family:var(--voice);font-size:17px;margin-bottom:5px}
+  .idea-why{font-size:13px;color:var(--silver);margin-bottom:13px;flex:1}
+  .chip.src{color:var(--brass);border-color:rgba(201,162,39,.4)}
+  .ideas-hint{color:#5a6472;font-size:12.5px;margin:-14px 0 26px}
+  .posts .p{background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-panel);padding:16px 18px;margin-bottom:12px}
+  .p-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .p-tags{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{font-family:var(--data);font-size:11px;letter-spacing:.5px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--silver)}
+  .chip.st-draft{color:var(--silver)} .chip.st-approved{color:var(--brass);border-color:var(--brass)}
+  .chip.st-published{color:var(--up);border-color:rgba(46,204,143,.4)}
+  .chip.st-failed{color:var(--warn);border-color:rgba(229,115,94,.4)}
+  .p-text{font-size:14px;color:#d8d4cb;white-space:pre-wrap;margin:6px 0 10px}
+  .p-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .p-err{color:var(--warn);font-size:12.5px;font-family:var(--data);margin-top:6px}
+  .empty{color:var(--silver);font-size:14px;padding:8px 0}
+  .footer{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);color:var(--silver);font-size:13px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 60 24" width="50" height="20" aria-hidden="true"><path d="M4 4 L26 10 L26 14 L4 20 Z" fill="#C9A227"></path><path d="M56 4 L34 10 L34 14 L56 20 Z" fill="#C9A227"></path><rect x="26" y="8" width="8" height="8" rx="1.5" fill="#C9A227"></rect></svg>
+      <span class="word">МЭТР</span>
+    </div>
+    <div class="nav"><a href="/">← Анализ</a> &nbsp; <a href="/social">Соцсети</a> &nbsp; <a href="/trends">Тренды</a> &nbsp; <a href="/crm">Гости</a> &nbsp; <a href="/recruiting">Найм</a> &nbsp; <a href="/settings">Настройки</a> &nbsp; <a href="/logout">Выход</a></div>
+  </div>
+
+  <span class="eyebrow">Мэтр приглашает</span>
+  <h1>Контент и публикации</h1>
+  <div class="lead">Сгенерируйте пост, отредактируйте и опубликуйте во ВКонтакте или Telegram. Публикуется только то, что вы утвердили. Ассистент и каналы подключаются в <a href="/settings">Настройках</a>.</div>
+
+  <!-- Идеи от разведки -->
+  <span class="eyebrow">Мэтр наблюдает · идеи для постов</span>
+  <div class="ideas" id="ideas" style="margin-top:12px"></div>
+  <div class="ideas-hint" id="ideas-hint"></div>
+
+  <!-- Композер -->
+  <div class="card">
+    <input type="hidden" id="post-id">
+    <div class="grid">
+      <div class="field"><label>Сеть</label><select id="c-network"></select></div>
+      <div class="field"><label>Контент-линия</label><select id="c-line"></select></div>
+      <div class="field full"><label>Тема / повод (необязательно)</label><input id="c-topic" placeholder="Напр.: джазовый вечер в пятницу, новое сезонное меню"></div>
+      <div class="field full"><label>Пожелания к тону (необязательно)</label><input id="c-tone" placeholder="Напр.: сдержанно, с приглашением забронировать столик"></div>
+    </div>
+    <div class="row">
+      <button class="btn brass" id="btn-gen">Сгенерировать черновик</button>
+      <span class="msg" id="gen-msg"></span>
+    </div>
+    <div class="gen-hint">Текст можно свободно править после генерации.</div>
+
+    <div class="field full" style="margin-top:16px"><label>Текст поста</label><textarea id="c-text" placeholder="Здесь появится сгенерированный текст — или напишите свой."></textarea></div>
+
+    <div class="grid">
+      <div class="field"><label>Запланировать автопубликацию (необязательно)</label><input type="datetime-local" id="c-sched"></div>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="btn-check">Проверить</button>
+      <button class="btn" id="btn-draft">Сохранить черновик</button>
+      <button class="btn brass" id="btn-publish">Опубликовать сейчас</button>
+      <button class="btn" id="btn-reset" style="margin-left:auto">Новый пост</button>
+      <span class="msg" id="save-msg"></span>
+    </div>
+    <div id="mod-result"></div>
+  </div>
+
+  <span class="eyebrow">Очередь и публикации</span>
+  <div class="posts" id="posts" style="margin-top:12px"></div>
+
+  <div class="footer">МЭТР / MAÎTRE · публикуется только утверждённый контент · токены хранятся на вашем сервере</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let META=null;
+
+async function boot(){
+  META = await (await fetch('/api/content/meta')).json();
+  $('c-network').innerHTML = META.networks.map(n=>`<option value="${n.value}">${n.label}</option>`).join('');
+  $('c-line').innerHTML = META.content_lines.map(l=>`<option value="${l}">${l}</option>`).join('');
+  await loadIdeas();
+  await loadPosts();
+}
+
+async function loadIdeas(){
+  const d = await (await fetch('/api/content/ideas?network='+$('c-network').value)).json();
+  window.__ideas = d.ideas;
+  const responsive = d.ideas.filter(i=>i.source).length;
+  $('ideas').innerHTML = d.ideas.map((i,idx)=>`
+    <div class="idea">
+      <div class="idea-top">
+        <span class="chip">${esc(i.content_line)}</span>
+        ${i.source?`<span class="chip src">ответ на «${esc(i.source)}»</span>`:''}
+      </div>
+      <div class="idea-topic">${esc(i.topic)}</div>
+      <div class="idea-why">${esc(i.rationale)}</div>
+      <button class="btn" onclick="useIdea(${idx})">Взять в работу</button>
+    </div>`).join('');
+  $('ideas-hint').textContent = responsive
+    ? 'Идеи с пометкой «ответ на …» — реакция на активность конкурентов из разведки.'
+    : 'Пока показаны базовые идеи. Они станут точнее, когда запустится еженедельная разведка конкурентов.';
+}
+
+function useIdea(idx){
+  const i=(window.__ideas||[])[idx]; if(!i) return;
+  resetForm();
+  $('c-network').value=i.network;
+  if(![...$('c-line').options].some(o=>o.value===i.content_line)){
+    $('c-line').insertAdjacentHTML('beforeend',`<option value="${i.content_line}">${i.content_line}</option>`);
+  }
+  $('c-line').value=i.content_line;
+  $('c-topic').value=i.topic;
+  document.querySelector('.card').scrollIntoView({behavior:'smooth'});
+  $('gen-msg').textContent='Идея подставлена — можно генерировать';
+  $('gen-msg').className='msg ok';
+}
+
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function loadPosts(){
+  const d = await (await fetch('/api/content')).json();
+  const box=$('posts');
+  if(!d.posts.length){ box.innerHTML='<div class="empty">Пока нет постов. Сгенерируйте первый выше.</div>'; return; }
+  box.innerHTML = d.posts.map(p=>`
+    <div class="p">
+      <div class="p-top">
+        <div class="p-tags">
+          <span class="chip">${p.network_label}</span>
+          ${p.content_line?`<span class="chip">${esc(p.content_line)}</span>`:''}
+          <span class="chip st-${p.status}">${p.status_label}</span>
+          ${p.scheduled_at&&p.status!=='published'?`<span class="chip">план: ${esc(p.scheduled_at.slice(0,16).replace('T',' '))}</span>`:''}
+        </div>
+        <div class="p-tags">${p.link?`<a href="${p.link}" target="_blank" rel="noopener">открыть ↗</a>`:''}</div>
+      </div>
+      <div class="p-text">${esc(p.text)}</div>
+      ${p.error?`<div class="p-err">Ошибка публикации: ${esc(p.error)}</div>`:''}
+      <div class="p-actions">
+        ${p.status!=='published'?`<button class="btn brass" onclick="publishNow('${p.id}')">Опубликовать</button>`:''}
+        <button class="btn" onclick="edit('${p.id}')">Редактировать</button>
+        <button class="btn" onclick="del('${p.id}')">Удалить</button>
+      </div>
+    </div>`).join('');
+  window.__posts = d.posts;
+}
+
+async function generate(){
+  const msg=$('gen-msg'); msg.textContent='МЭТР пишет…'; msg.className='msg';
+  const resp = await fetch('/api/content/generate',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({network:$('c-network').value, content_line:$('c-line').value, topic:$('c-topic').value.trim(), tone:$('c-tone').value.trim()})});
+  const d = await resp.json();
+  if(!resp.ok){ msg.textContent=d.error||'Ошибка'; msg.className='msg err'; return; }
+  $('c-text').value = d.text; msg.textContent='Готово — проверьте и отредактируйте'; msg.className='msg ok';
+}
+
+function payload(status){
+  const sched = $('c-sched').value ? new Date($('c-sched').value).toISOString() : '';
+  const p = {network:$('c-network').value, content_line:$('c-line').value, topic:$('c-topic').value.trim(),
+    text:$('c-text').value, scheduled_at:sched};
+  if($('post-id').value) p.id=$('post-id').value;
+  if(status) p.status=status;
+  return p;
+}
+
+async function saveDraft(){
+  const msg=$('save-msg');
+  if(!$('c-text').value.trim()){ msg.textContent='Пустой текст'; msg.className='msg err'; return null; }
+  const d = await (await fetch('/api/content',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload($('c-sched').value?'approved':'draft'))})).json();
+  $('post-id').value = d.post.id;
+  msg.textContent='Сохранено'; msg.className='msg ok'; setTimeout(()=>msg.textContent='',2000);
+  await loadPosts();
+  return d.post;
+}
+
+function renderMod(mod){
+  const box=$('mod-result');
+  if(!mod || !mod.issues){ box.innerHTML=''; return; }
+  const head = mod.level==='ok' ? 'Проверка пройдена — замечаний нет'
+            : mod.level==='block' ? 'Публикация заблокирована — исправьте:'
+            : 'Можно публиковать, но есть замечания:';
+  const items = mod.issues.map(i=>`<div class="issue ${i.level}">
+      <span class="lvl">${i.level==='block'?'стоп':'совет'}</span>
+      <span class="txt">${esc(i.message)}</span></div>`).join('');
+  box.innerHTML = `<div class="mod"><div class="mod-head ${mod.level}">${head}</div>${items}</div>`;
+}
+
+async function check(){
+  const text=$('c-text').value;
+  if(!text.trim()){ renderMod({level:'block',issues:[{level:'block',message:'Пустой текст поста'}]}); return null; }
+  const mod = await (await fetch('/api/content/moderate',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text, network:$('c-network').value})})).json();
+  renderMod(mod);
+  return mod;
+}
+
+async function publishCurrent(){
+  const msg=$('save-msg'); msg.textContent='Проверяю и публикую…'; msg.className='msg';
+  const post = await saveDraft(); if(!post) return;
+  const resp = await fetch(`/api/content/${post.id}/publish`,{method:'POST'});
+  const d = await resp.json();
+  if(!resp.ok){
+    if(d.moderation){ renderMod(d.moderation); msg.textContent='Не пропущено модерацией'; }
+    else msg.textContent = (d.error||'Ошибка публикации');
+    msg.className='msg err'; await loadPosts(); return;
+  }
+  renderMod(null); msg.textContent='Опубликовано'; msg.className='msg ok';
+  await loadPosts();
+}
+
+async function publishNow(id){
+  const resp = await fetch(`/api/content/${id}/publish`,{method:'POST'});
+  const d = await resp.json();
+  if(!resp.ok) alert(d.error||'Ошибка публикации');
+  await loadPosts();
+}
+function edit(id){
+  const p=(window.__posts||[]).find(x=>x.id===id); if(!p) return;
+  $('post-id').value=p.id; $('c-network').value=p.network; $('c-line').value=p.content_line||META.content_lines[0];
+  $('c-topic').value=p.topic||''; $('c-text').value=p.text||'';
+  $('c-sched').value = p.scheduled_at? p.scheduled_at.slice(0,16):'';
+  window.scrollTo(0,0);
+}
+async function del(id){
+  if(!confirm('Удалить пост?')) return;
+  await fetch(`/api/content/${id}`,{method:'DELETE'});
+  if($('post-id').value===id) resetForm();
+  await loadPosts();
+}
+function resetForm(){
+  $('post-id').value=''; $('c-topic').value=''; $('c-tone').value=''; $('c-text').value=''; $('c-sched').value='';
+  $('save-msg').textContent=''; $('gen-msg').textContent='';
+}
+
+$('c-network').addEventListener('change', loadIdeas);
+$('btn-gen').onclick=generate;
+$('btn-check').onclick=check;
+$('btn-draft').onclick=saveDraft;
+$('btn-publish').onclick=publishCurrent;
+$('btn-reset').onclick=resetForm;
+boot();
+</script>
+</body>
+</html>

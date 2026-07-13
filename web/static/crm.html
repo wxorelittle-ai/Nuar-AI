@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МЭТР — гости (VIP CRM)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cpath d='M4 4 L26 10 L26 14 L4 20 Z' fill='%23C9A227'/%3E%3Cpath d='M56 4 L34 10 L34 14 L56 20 Z' fill='%23C9A227'/%3E%3Crect x='26' y='8' width='8' height='8' rx='1.5' fill='%23C9A227'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --graphite:#14171A;--graphite-2:#1C2024;--bottle:#0F2B25;--brass:#C9A227;--brass-dim:#8A6F1C;
+    --porcelain:#F5F1E8;--silver:#8B95A3;--line:#2B3036;--up:#2ECC8F;--warn:#E5735E;
+    --voice:'Playfair Display',Georgia,serif;--ui:'Inter',system-ui,-apple-system,sans-serif;--data:'JetBrains Mono',monospace;
+    --r-ctrl:8px;--r-panel:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--graphite);color:var(--porcelain);font-family:var(--ui);font-size:16px;line-height:1.6}
+  .wrap{max-width:960px;margin:0 auto;padding:22px 24px 80px}
+  a{color:var(--brass);text-decoration:none}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:4px 0 26px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .brand .word{font-family:var(--voice);font-size:24px;font-weight:500;letter-spacing:.12em}
+  .nav a{font-size:14px;color:var(--silver);margin-left:16px}.nav a:hover{color:var(--porcelain)}
+  .eyebrow{font-family:var(--data);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--brass-dim)}
+  .section>.eyebrow{display:block;margin-bottom:12px}
+  h1{font-family:var(--voice);font-size:28px;font-weight:500;margin:6px 0 8px}
+  .lead{color:var(--silver);font-size:15px;margin-bottom:22px;max-width:76ch}
+
+  .card{background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-panel);padding:20px 22px;margin-bottom:20px}
+  textarea{width:100%;min-height:110px;background:var(--graphite);border:1px solid var(--line);color:var(--porcelain);border-radius:var(--r-ctrl);padding:12px 13px;font-family:var(--data);font-size:12.5px;outline:none;resize:vertical}
+  textarea:focus{border-color:var(--brass)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .btn{font-family:var(--ui);font-size:14px;font-weight:500;padding:11px 18px;border-radius:var(--r-ctrl);border:1px solid var(--line);background:transparent;color:var(--porcelain);cursor:pointer}
+  .btn:hover{border-color:var(--brass)}
+  .btn.brass{background:var(--brass);color:var(--graphite);border-color:var(--brass)}
+  .btn.brass:hover{filter:brightness(1.06)}
+  .msg{font-size:13px;font-family:var(--data)}.msg.ok{color:var(--up)}.msg.err{color:var(--warn)}
+  .hint{font-size:12px;color:#5a6472;margin-top:8px}
+  input[type=file]{color:var(--silver);font-size:13px}
+
+  .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .tile{background:var(--graphite);border:1px solid var(--line);border-radius:var(--r-ctrl);padding:14px;text-align:center}
+  .tile .v{font-family:var(--data);font-size:22px;font-weight:500}
+  .tile .l{color:var(--silver);font-size:11.5px;margin-top:5px}
+  .tile.vip{border-color:rgba(201,162,39,.4)} .tile.vip .v{color:var(--brass)}
+
+  .tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+  .tbl th{text-align:left;font-family:var(--data);font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--silver);font-weight:500;padding:9px 8px;border-bottom:1px solid var(--line)}
+  .tbl td{padding:10px 8px;border-bottom:1px solid var(--line)}
+  .tbl tr:last-child td{border-bottom:none}
+  .seg{font-family:var(--data);font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--silver)}
+  .seg.vip{color:var(--brass);border-color:var(--brass)}
+  .num{font-family:var(--data)}
+
+  .touch{display:flex;align-items:center;gap:14px;padding:12px 4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .touch:last-child{border-bottom:none}
+  .touch .tname{font-weight:600;min-width:160px}
+  .touch .tdetail{font-family:var(--data);font-size:12.5px;color:var(--silver);flex:1}
+  .badge{font-family:var(--data);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:20px;border:1px solid var(--line)}
+  .badge.bd{color:var(--brass);border-color:rgba(201,162,39,.4)}
+  .badge.ab{color:var(--silver)}
+
+  .maitre{background:var(--graphite-2);border:1px solid var(--line);border-left:2px solid var(--brass);border-radius:0 var(--r-ctrl) var(--r-ctrl) 0;padding:16px 20px;margin-top:14px;display:none}
+  .maitre.on{display:block}
+  .maitre .who{font-family:var(--data);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--silver);margin-bottom:8px}
+  .maitre .txt{font-family:var(--voice);font-size:16px;line-height:1.7}
+  .footer{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);color:var(--silver);font-size:13px}
+  @media(max-width:640px){.tiles{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 60 24" width="50" height="20"><path d="M4 4 L26 10 L26 14 L4 20 Z" fill="#C9A227"></path><path d="M56 4 L34 10 L34 14 L56 20 Z" fill="#C9A227"></path><rect x="26" y="8" width="8" height="8" rx="1.5" fill="#C9A227"></rect></svg>
+      <span class="word">МЭТР</span>
+    </div>
+    <div class="nav"><a href="/">Анализ</a><a href="/content">Контент</a><a href="/social">Соцсети</a><a href="/trends">Тренды</a><a href="/recruiting">Найм</a><a href="/settings">Настройки</a><a href="/logout">Выход</a></div>
+  </div>
+
+  <span class="eyebrow">Мэтр помнит</span>
+  <h1>Гости и персональные касания</h1>
+  <div class="lead">Загрузите гостевую базу (CSV) — МЭТР разложит её по сегментам и подскажет, кому написать сегодня: у кого день рождения и кто давно не был. Сообщения — черновики от лица метрдотеля, без скидок; отправляете вы. Данные хранятся на вашем сервере (152-ФЗ).</div>
+
+  <div class="card">
+    <span class="eyebrow">Импорт базы (CSV)</span>
+    <div style="height:10px"></div>
+    <textarea id="csv" placeholder="Имя,Телефон,День рождения,Последний визит,Визитов,Средний чек,Теги
+Соколов Иван,+79001234567,16.07.1980,2026-07-01,12,5200,"></textarea>
+    <div class="row">
+      <input type="file" id="file" accept=".csv,text/csv">
+      <button class="btn" id="demo">Заполнить примером</button>
+      <button class="btn brass" id="import">Импортировать</button>
+      <span class="msg" id="imp-msg"></span>
+    </div>
+    <div class="hint">Заголовки распознаются гибко (рус/англ): Имя, Телефон, День рождения, Последний визит, Визитов, Средний чек, Теги. Разделитель , или ;</div>
+  </div>
+
+  <div id="out"></div>
+
+  <div class="footer">МЭТР / MAÎTRE · гостевые данные хранятся на вашем сервере (152-ФЗ) · сообщения — черновики для ручной отправки</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const DEMO=`Имя,Телефон,День рождения,Последний визит,Визитов,Средний чек,Теги
+Соколов Иван,+79001234567,16.07.1980,2026-07-01,12,5200,
+Петрова Анна,+79005556677,20.11.1990,2026-05-01,2,4800,
+ООО Вектор,+79007778899,,2026-06-20,3,15000,корпоратив
+Мария Кузнецова,,05.02.1988,2026-03-01,7,2200,
+Дмитрий Л.,+79003334455,,2026-07-05,1,6100,`;
+
+$('demo').onclick=()=>{ $('csv').value=DEMO; };
+$('file').onchange=e=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{$('csv').value=r.result;}; r.readAsText(f,'utf-8'); };
+$('import').onclick=doImport;
+
+async function doImport(){
+  const csv=$('csv').value.trim(), m=$('imp-msg');
+  if(!csv){ m.textContent='Вставьте CSV или загрузите файл'; m.className='msg err'; return; }
+  m.textContent='Импортирую…'; m.className='msg';
+  const d=await (await fetch('/api/crm/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csv})})).json();
+  if(d.error){ m.textContent=d.error; m.className='msg err'; return; }
+  m.textContent=`Импортировано гостей: ${d.imported}`; m.className='msg ok';
+  await refresh();
+}
+
+async function refresh(){
+  const [sum,touch,guests]=await Promise.all([
+    (await fetch('/api/crm/summary')).json(),
+    (await fetch('/api/crm/touches')).json(),
+    (await fetch('/api/crm/guests')).json(),
+  ]);
+  render(sum, touch.touches, guests.guests);
+}
+
+function render(sum, touches, guests){
+  if(!sum.total){ $('out').innerHTML='<div class="hint">База пуста. Импортируйте CSV выше.</div>'; return; }
+  const tiles=sum.segments.map(s=>`<div class="tile ${s.key==='vip'?'vip':''}"><div class="v">${s.count}</div><div class="l">${esc(s.label)}</div></div>`).join('');
+
+  const touchRows=touches.length? touches.map(t=>`
+    <div class="touch">
+      <div class="tname">${esc(t.name)}</div>
+      <span class="badge ${t.trigger==='birthday'?'bd':'ab'}">${t.trigger==='birthday'?'день рождения':'давно не был'}</span>
+      <div class="tdetail">${esc(t.detail)}</div>
+      <button class="btn" onclick="writeMsg('${t.guest_id}','${t.trigger}',this)">Написать</button>
+    </div>`).join('') : '<div class="hint">Сегодня персональных поводов нет.</div>';
+
+  const grows=guests.map(g=>`<tr>
+      <td>${esc(g.name)}</td>
+      <td><span class="seg ${g.segment==='vip'?'vip':''}">${esc(g.segment_label)}</span></td>
+      <td class="num">${g.visits}</td>
+      <td class="num">${g.avg_check?g.avg_check+' ₽':'—'}</td>
+      <td class="num">${g.last_visit||'—'}</td>
+      <td class="num">${g.birthday||'—'}</td>
+    </tr>`).join('');
+
+  $('out').innerHTML=`
+    <div class="section"><span class="eyebrow">Сегменты · всего ${sum.total}</span><div class="card"><div class="tiles">${tiles}</div></div></div>
+    <div class="section"><span class="eyebrow">Кому написать сегодня</span><div class="card">${touchRows}<div class="maitre" id="draft"><div class="who" id="draft-who">Черновик метрдотеля</div><div class="txt" id="draft-txt"></div><div class="row"><button class="btn" id="copy">Копировать</button><span class="msg" id="copy-msg"></span></div></div></div></div>
+    <div class="section"><span class="eyebrow">Гостевая база</span><div class="card" style="padding:8px 16px;overflow-x:auto">
+      <table class="tbl"><thead><tr><th>Имя</th><th>Сегмент</th><th>Визитов</th><th>Ср. чек</th><th>Последний визит</th><th>ДР</th></tr></thead><tbody>${grows}</tbody></table>
+    </div></div>`;
+}
+
+async function writeMsg(id,trigger,btn){
+  btn.disabled=true; const old=btn.textContent; btn.textContent='…';
+  const d=await (await fetch('/api/crm/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({guest_id:id,trigger})}).catch(()=>({json:()=>({error:'сеть'})}))).json();
+  btn.disabled=false; btn.textContent=old;
+  const card=$('draft');
+  if(d.error){ card.classList.remove('on'); alert(d.error); return; }
+  $('draft-txt').textContent=d.draft;
+  $('draft-who').textContent = d.source==='ai' ? 'Черновик метрдотеля · на модели' : 'Черновик метрдотеля · шаблон (подключите ассистента для персонализации)';
+  card.classList.add('on');
+  $('copy').onclick=async()=>{ try{ await navigator.clipboard.writeText(d.draft); $('copy-msg').textContent='Скопировано'; $('copy-msg').className='msg ok'; }catch(e){ $('copy-msg').textContent='Выделите и скопируйте вручную'; } };
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+refresh();
+</script>
+</body>
+</html>

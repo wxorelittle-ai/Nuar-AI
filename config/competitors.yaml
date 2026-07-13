@@ -1,0 +1,87 @@
+# ── РестоПульс · список конкурентов Nuar (Тюмень) ─────────────────────
+# Правится вручную. URL-адреса заполняются после поиска карточек.
+#   dgis_url    — ссылка на карточку 2ГИС (…/firm/<id>)
+#   yandex_url  — ссылка на карточку Яндекс.Карт (…/org/<slug>/<id>)
+#   yandex_org_id — числовой ID организации на Яндексе (для API-запроса)
+#   vk_domain   — короткое имя группы VK (то, что после vk.com/), напр. "nuarrest"
+#   priority    — high | medium | low (влияет на раздел «ВАЖНО» в дайджесте)
+#
+# Пустой URL/domain = источник по конкуренту пропускается (не выдумываем данные).
+
+competitors:
+  - name: "Арбат"
+    address: "Советская, 21, Тюмень"
+    priority: high
+    monitor_frequency: weekly
+    dgis_url: ""
+    yandex_url: ""
+    yandex_org_id: ""
+    vk_domain: ""
+    note: "Напротив Nuar. «Лучший бар 2025» по 2ГИС — следим за PR-активностью."
+
+  - name: "Сыроварня"
+    address: "Советская, 54, Тюмень"
+    priority: medium
+    monitor_frequency: weekly
+    dgis_url: ""
+    yandex_url: ""
+    yandex_org_id: ""
+    vk_domain: ""
+    note: "Банкеты до 260 мест — прямая конкуренция по корпоративам."
+
+  - name: "Ресторан-музей"
+    address: "Володарского, 3, Тюмень"
+    priority: medium
+    monitor_frequency: weekly
+    dgis_url: ""
+    yandex_url: ""
+    yandex_org_id: ""
+    vk_domain: ""
+    note: "Гастрорейтинги, шефские ужины."
+
+  - name: "Особняк"
+    address: "Володарского, 9, Тюмень"
+    priority: medium
+    monitor_frequency: weekly
+    dgis_url: ""
+    yandex_url: ""
+    yandex_org_id: ""
+    vk_domain: ""
+    note: "Крупные events, статусная аудитория."
+
+  - name: "MaxiMilian"
+    address: "Тюмень, центр"
+    priority: medium
+    monitor_frequency: weekly
+    dgis_url: ""
+    yandex_url: ""
+    yandex_org_id: ""
+    vk_domain: ""
+    note: "Итальянская премиум-кухня."
+
+  - name: "Nori"
+    address: "Тюмень, центр"
+    priority: medium
+    monitor_frequency: weekly
+    dgis_url: ""
+    yandex_url: ""
+    yandex_org_id: ""
+    vk_domain: ""
+    note: "Паназия, B2B-банкеты."
+
+  - name: "Мята"
+    address: "Советская, 20, Тюмень"
+    priority: low
+    monitor_frequency: weekly
+    dgis_url: ""
+    yandex_url: ""
+    yandex_org_id: ""
+    vk_domain: ""
+    note: "Сосед по отелю «Евразия», не прямой конкурент — мониторим пассивно."
+
+# ── Городские СМИ для поиска упоминаний ───────────────────────────────
+media_sources:
+  - name: "1tmn.ru"
+    search_url: "https://1tmn.ru/search/?q={query}"
+  - name: "NashGorod"
+    search_url: "https://nashgorod.ru/search?q={query}"

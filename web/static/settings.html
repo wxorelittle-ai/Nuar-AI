@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МЭТР — настройки AI-ассистентов</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cpath d='M4 4 L26 10 L26 14 L4 20 Z' fill='%23C9A227'/%3E%3Cpath d='M56 4 L34 10 L34 14 L56 20 Z' fill='%23C9A227'/%3E%3Crect x='26' y='8' width='8' height='8' rx='1.5' fill='%23C9A227'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --graphite:#14171A; --graphite-2:#1C2024; --bottle:#0F2B25;
+    --brass:#C9A227; --brass-dim:#8A6F1C; --porcelain:#F5F1E8;
+    --silver:#8B95A3; --line:#2B3036; --up:#2ECC8F; --warn:#E5735E;
+    --voice:'Playfair Display',Georgia,serif;
+    --ui:'Inter',system-ui,-apple-system,sans-serif;
+    --data:'JetBrains Mono',monospace;
+    --r-ctrl:8px; --r-panel:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--graphite);color:var(--porcelain);font-family:var(--ui);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:22px 24px 80px}
+  a{color:var(--brass);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:4px 0 26px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .brand .word{font-family:var(--voice);font-size:24px;font-weight:500;letter-spacing:.12em}
+  .nav a{font-size:14px;color:var(--silver)}
+  .nav a:hover{color:var(--porcelain);text-decoration:none}
+
+  .eyebrow{font-family:var(--data);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--brass-dim)}
+  h1{font-family:var(--voice);font-size:30px;font-weight:500;margin:6px 0 8px}
+  .lead{color:var(--silver);font-size:15px;margin-bottom:8px;max-width:70ch}
+  .warn-note{border:1px solid rgba(242,193,78,.28);background:rgba(242,193,78,.06);color:#e8cd97;
+    padding:12px 16px;border-radius:var(--r-ctrl);font-size:13.5px;margin:18px 0 30px;max-width:80ch}
+
+  .card{background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-panel);padding:22px 24px;margin-bottom:16px}
+  .card.active{border-color:var(--brass)}
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .card-head .ttl{font-family:var(--voice);font-size:20px;font-weight:500}
+  .card-head .sub{font-family:var(--data);font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--silver);margin-top:2px}
+  .card .help{font-size:13px;color:var(--silver);margin:10px 0 4px;max-width:74ch}
+  .card .help a{font-size:13px}
+
+  .active-toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--silver);white-space:nowrap;cursor:pointer}
+  .active-toggle input{accent-color:var(--brass);width:16px;height:16px}
+  .active-badge{font-family:var(--data);font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;
+    color:var(--brass);border:1px solid var(--brass);border-radius:20px;padding:3px 9px;display:none}
+  .card.active .active-badge{display:inline-block}
+
+  .fields{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .field{display:flex;flex-direction:column}
+  .field.full{grid-column:1 / -1}
+  .field label{font-size:12.5px;color:var(--silver);margin-bottom:6px}
+  .field input[type=text],.field input[type=password]{
+    background:var(--graphite);border:1px solid var(--line);color:var(--porcelain);
+    padding:11px 13px;border-radius:var(--r-ctrl);font-size:14px;outline:none;font-family:var(--data);transition:border-color .15s}
+  .field input:focus{border-color:var(--brass)}
+  .field .hint{font-size:11.5px;color:#5a6472;margin-top:5px}
+  .field.bool{flex-direction:row;align-items:center;gap:10px}
+  .field.bool input{width:18px;height:18px;accent-color:var(--brass)}
+  .field.bool label{margin:0}
+
+  .card-actions{display:flex;gap:10px;margin-top:18px;align-items:center;flex-wrap:wrap}
+  .btn{font-family:var(--ui);font-size:14px;font-weight:500;padding:10px 18px;border-radius:var(--r-ctrl);
+    border:1px solid var(--line);background:transparent;color:var(--porcelain);cursor:pointer;transition:.15s}
+  .btn:hover{border-color:var(--brass)}
+  .btn.brass{background:var(--brass);color:var(--graphite);border-color:var(--brass)}
+  .btn.brass:hover{filter:brightness(1.06)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .test-result{font-size:13px;font-family:var(--data)}
+  .test-result.ok{color:var(--up)} .test-result.err{color:var(--warn)}
+
+  .savebar{position:sticky;bottom:0;background:linear-gradient(0deg,var(--graphite) 70%,transparent);
+    padding:16px 0 8px;margin-top:8px;display:flex;gap:12px;align-items:center}
+  .savebar .msg{font-size:13px;font-family:var(--data)}
+  .savebar .msg.ok{color:var(--up)} .savebar .msg.err{color:var(--warn)}
+
+  /* Мэтр отвечает */
+  .trial{margin-top:44px}
+  .trial textarea{width:100%;min-height:90px;background:var(--graphite);border:1px solid var(--line);
+    color:var(--porcelain);border-radius:var(--r-ctrl);padding:13px 14px;font-family:var(--ui);font-size:14px;outline:none;resize:vertical}
+  .trial textarea:focus{border-color:var(--brass)}
+  .trial-row{display:flex;gap:12px;margin-top:12px;align-items:center;flex-wrap:wrap}
+  .trial select{background:var(--graphite);border:1px solid var(--line);color:var(--porcelain);
+    padding:10px 12px;border-radius:var(--r-ctrl);font-family:var(--ui);font-size:14px;outline:none}
+  .maitre{background:var(--graphite-2);border:1px solid var(--line);border-left:2px solid var(--brass);
+    border-radius:0 var(--r-ctrl) var(--r-ctrl) 0;padding:18px 22px;margin-top:18px;display:none}
+  .maitre.on{display:block}
+  .maitre .who{font-family:var(--data);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--silver);margin-bottom:9px}
+  .maitre .txt{font-family:var(--voice);font-size:16.5px;line-height:1.75}
+
+  .footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);color:var(--silver);font-size:13px}
+  @media(max-width:640px){.fields{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 60 24" width="50" height="20" aria-hidden="true">
+        <path d="M4 4 L26 10 L26 14 L4 20 Z" fill="#C9A227"></path>
+        <path d="M56 4 L34 10 L34 14 L56 20 Z" fill="#C9A227"></path>
+        <rect x="26" y="8" width="8" height="8" rx="1.5" fill="#C9A227"></rect>
+      </svg>
+      <span class="word">МЭТР</span>
+    </div>
+    <div class="nav"><a href="/">← Анализ</a> &nbsp; <a href="/content">Контент</a> &nbsp; <a href="/social">Соцсети</a> &nbsp; <a href="/trends">Тренды</a> &nbsp; <a href="/crm">Гости</a> &nbsp; <a href="/recruiting">Найм</a> &nbsp; <a href="/logout">Выход</a></div>
+  </div>
+
+  <span class="eyebrow">Настройки</span>
+  <h1>AI-ассистенты</h1>
+  <div class="lead">Подключите модель, на которой будет работать МЭТР: писать ответы на отзывы, посты и сводки. Ключи хранятся на этом сервере и не передаются наружу.</div>
+  <div class="warn-note">Это приватная панель. Не выкладывайте её в открытый доступ вместе с ключами — API-ключи не должны попадать в публичную витрину сайта.</div>
+
+  <div id="providers"></div>
+
+  <div class="savebar">
+    <button class="btn brass" id="btn-save">Сохранить настройки</button>
+    <span class="msg" id="save-msg"></span>
+  </div>
+
+  <!-- ── Каналы публикации ── -->
+  <div style="margin-top:44px">
+    <span class="eyebrow">Каналы публикации</span>
+    <h1 style="font-size:24px">Соцсети</h1>
+    <div class="lead">Подключите ВКонтакте и Telegram, чтобы МЭТР публиковал утверждённые посты. Токены хранятся на этом сервере.</div>
+    <div id="channels"></div>
+    <div class="savebar">
+      <button class="btn brass" id="btn-save-ch">Сохранить каналы</button>
+      <span class="msg" id="save-ch-msg"></span>
+    </div>
+  </div>
+
+  <!-- ── Проба: Мэтр отвечает ── -->
+  <div class="trial">
+    <span class="eyebrow">Проверка в деле · Мэтр отвечает</span>
+    <h1 style="font-size:24px">Ответ на отзыв</h1>
+    <div class="lead">Вставьте отзыв гостя — МЭТР подготовит черновик ответа на активной модели.</div>
+    <textarea id="review" placeholder="Например: Были вчера вечером, кухня отличная, но ждали горячее почти час. Атмосфера и живая музыка — на высоте."></textarea>
+    <div class="trial-row">
+      <select id="tone">
+        <option value="warm">Тон: тёплый, сдержанный</option>
+        <option value="formal">Тон: официальный</option>
+        <option value="apologetic">Тон: с признанием проблемы</option>
+      </select>
+      <button class="btn brass" id="btn-reply">Сгенерировать ответ</button>
+      <span class="test-result" id="reply-msg"></span>
+    </div>
+    <div class="maitre" id="reply-out">
+      <div class="who">МЭТР · черновик ответа</div>
+      <div class="txt" id="reply-txt"></div>
+    </div>
+  </div>
+
+  <div class="footer">МЭТР / MAÎTRE · приватная система управляющего · данные и ключи хранятся на вашем сервере (152-ФЗ)</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let STATE = null;   // ответ /api/settings
+
+async function load(){
+  STATE = await (await fetch('/api/settings')).json();
+  renderProviders();
+}
+
+function renderProviders(){
+  const box = $('providers');
+  box.innerHTML = STATE.providers.map(p => card(p)).join('');
+  // навесить обработчики active-radio
+  document.querySelectorAll('input[name=active]').forEach(r=>{
+    r.addEventListener('change', ()=>{
+      document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+      $('card-'+r.value).classList.add('active');
+    });
+  });
+}
+
+function fieldHTML(pkey, f, values){
+  const v = values[f.name];
+  if(f.type === 'bool'){
+    const checked = v ? 'checked' : '';
+    return `<div class="field bool full">
+      <input type="checkbox" id="fld-${pkey}-${f.name}" ${checked}>
+      <label for="fld-${pkey}-${f.name}">${f.label}</label>
+    </div>`;
+  }
+  const isPass = f.type === 'password';
+  let ph = f.placeholder || '';
+  let val = '';
+  if(isPass){
+    ph = (v && v.set) ? `сохранён (${v.hint}) — оставьте пустым, чтобы не менять` : (f.placeholder||'');
+  } else {
+    val = (v==null?'':v);
+  }
+  const fullFields=['api_key','authorization_key','base_url','access_token','bot_token'];
+  return `<div class="field ${fullFields.includes(f.name)?'full':''}">
+    <label for="fld-${pkey}-${f.name}">${f.label}</label>
+    <input type="${isPass?'password':'text'}" id="fld-${pkey}-${f.name}"
+      placeholder="${ph.replace(/"/g,'&quot;')}" value="${String(val).replace(/"/g,'&quot;')}" autocomplete="off">
+    ${f.hint?`<div class="hint">${f.hint}</div>`:''}
+  </div>`;
+}
+
+function card(p){
+  const isActive = STATE.active_provider === p.key;
+  const fields = p.fields.map(f=>fieldHTML(p.key, f, p.values)).join('');
+  return `<div class="card ${isActive?'active':''}" id="card-${p.key}">
+    <div class="card-head">
+      <div>
+        <div class="ttl">${p.title} <span class="active-badge">активный</span></div>
+        <div class="sub">${p.subtitle||''}</div>
+      </div>
+      <label class="active-toggle">
+        <input type="radio" name="active" value="${p.key}" ${isActive?'checked':''}> Сделать активным
+      </label>
+    </div>
+    ${p.help?`<div class="help">${p.help} ${p.docs?`<a href="${p.docs}" target="_blank" rel="noopener">Документация ↗</a>`:''}</div>`:''}
+    <div class="fields">${fields}</div>
+    <div class="card-actions">
+      <button class="btn" onclick="testProvider('${p.key}')">Проверить связь</button>
+      <span class="test-result" id="test-${p.key}"></span>
+    </div>
+  </div>`;
+}
+
+function collect(){
+  const active = (document.querySelector('input[name=active]:checked')||{}).value || STATE.active_provider || null;
+  const providers = {};
+  for(const p of STATE.providers){
+    const patch = {};
+    for(const f of p.fields){
+      const el = $(`fld-${p.key}-${f.name}`);
+      if(!el) continue;
+      if(f.type==='bool'){ patch[f.name] = el.checked; }
+      else if(f.type==='password'){ if(el.value.trim()!=='') patch[f.name]=el.value.trim(); }
+      else { patch[f.name] = el.value.trim(); }
+    }
+    providers[p.key] = patch;
+  }
+  return {active_provider: active, providers};
+}
+
+async function save(){
+  const msg = $('save-msg'); msg.textContent='Сохраняю…'; msg.className='msg';
+  const resp = await fetch('/api/settings', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(collect())});
+  const data = await resp.json();
+  if(!resp.ok){ msg.textContent = data.error||'Ошибка сохранения'; msg.className='msg err'; return false; }
+  STATE = data; renderProviders();
+  msg.textContent = 'Сохранено'; msg.className='msg ok';
+  setTimeout(()=>{msg.textContent='';}, 2500);
+  return true;
+}
+$('btn-save').onclick = save;
+
+async function testProvider(key){
+  const el = $('test-'+key); el.textContent='Проверяю…'; el.className='test-result';
+  // Сначала сохраняем введённые ключи, затем проверяем
+  if(!(await save())) { el.textContent='Сначала исправьте сохранение'; el.className='test-result err'; return; }
+  const resp = await fetch('/api/llm/test', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider:key})});
+  const data = await resp.json();
+  el.textContent = data.message || (data.ok?'OK':'Ошибка');
+  el.className = 'test-result ' + (data.ok?'ok':'err');
+}
+
+async function reply(){
+  const review = $('review').value.trim();
+  const msg = $('reply-msg'), out = $('reply-out');
+  out.classList.remove('on'); msg.className='test-result';
+  if(!review){ msg.textContent='Вставьте текст отзыва'; msg.className='test-result err'; return; }
+  msg.textContent='МЭТР пишет…';
+  const resp = await fetch('/api/maitre/reply', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({review, tone:$('tone').value})});
+  const data = await resp.json();
+  if(!resp.ok){ msg.textContent = data.error||'Ошибка'; msg.className='test-result err'; return; }
+  msg.textContent=''; $('reply-txt').textContent = data.draft; out.classList.add('on');
+}
+$('btn-reply').onclick = reply;
+
+// ── Каналы публикации ──
+let CH = null;
+async function loadChannels(){
+  CH = await (await fetch('/api/channels')).json();
+  $('channels').innerHTML = CH.channels.map(c=>channelCard(c)).join('');
+}
+function channelCard(c){
+  const fields = c.fields.map(f=>fieldHTML(c.key, f, c.values)).join('');
+  return `<div class="card" id="card-${c.key}">
+    <div class="card-head"><div>
+      <div class="ttl">${c.title}</div><div class="sub">${c.subtitle||''}</div>
+    </div></div>
+    ${c.help?`<div class="help">${c.help} ${c.docs?`<a href="${c.docs}" target="_blank" rel="noopener">Документация ↗</a>`:''}</div>`:''}
+    <div class="fields">${fields}</div>
+  </div>`;
+}
+async function saveChannels(){
+  const msg=$('save-ch-msg'); msg.textContent='Сохраняю…'; msg.className='msg';
+  const channels={};
+  for(const c of CH.channels){
+    const patch={};
+    for(const f of c.fields){
+      const el=$(`fld-${c.key}-${f.name}`); if(!el) continue;
+      if(f.type==='password'){ if(el.value.trim()!=='') patch[f.name]=el.value.trim(); }
+      else patch[f.name]=el.value.trim();
+    }
+    channels[c.key]=patch;
+  }
+  const resp=await fetch('/api/channels',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channels})});
+  CH=await resp.json(); $('channels').innerHTML=CH.channels.map(c=>channelCard(c)).join('');
+  msg.textContent='Сохранено'; msg.className='msg ok'; setTimeout(()=>{msg.textContent='';},2500);
+}
+$('btn-save-ch').onclick = saveChannels;
+
+load();
+loadChannels();
+</script>
+</body>
+</html>

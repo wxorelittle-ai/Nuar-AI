@@ -1,0 +1,9 @@
+# Caddy — реверс-прокси с автоматическим HTTPS для панели МЭТР.
+# Адрес берётся из переменной METR_SITE_ADDRESS (.env):
+#   • домен  (metr.example.ru) → Caddy сам выпустит и продлит сертификат Let's Encrypt;
+#   • :80                       → доступ по IP без шифрования (только для проверки).
+
+{$METR_SITE_ADDRESS} {
+	encode gzip
+	reverse_proxy web:8000
+}

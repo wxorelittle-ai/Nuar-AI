@@ -1,0 +1,70 @@
+# ── МЭТР · production-стек ────────────────────────────────────────────
+# PostgreSQL + веб-панель (gunicorn) + фоновый воркер + Caddy (HTTPS).
+#
+#   1) заполните .env (см. .env.example): ADMIN_PASSWORD, SECRET_KEY,
+#      POSTGRES_PASSWORD, METR_SITE_ADDRESS (домен или :80), токены
+#   2) docker compose up -d --build
+#   3) домен в METR_SITE_ADDRESS → Caddy сам получит HTTPS-сертификат
+#
+# Данные (БД) — в томе pgdata на вашем сервере (152-ФЗ).
+# Порт 8000 наружу НЕ публикуется: доступ только через Caddy (80/443).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: metr
+      POSTGRES_USER: metr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-metr}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U metr -d metr"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://metr:${POSTGRES_PASSWORD:-metr}@db:5432/metr
+    expose:
+      - "8000"          # только внутри compose-сети, наружу — через Caddy
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["python", "-m", "agents.orchestrator.scheduler"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://metr:${POSTGRES_PASSWORD:-metr}@db:5432/metr
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      METR_SITE_ADDRESS: ${METR_SITE_ADDRESS:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

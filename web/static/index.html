@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МЭТР — AI-управляющий для премиальных ресторанов</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cpath d='M4 4 L26 10 L26 14 L4 20 Z' fill='%23C9A227'/%3E%3Cpath d='M56 4 L34 10 L34 14 L56 20 Z' fill='%23C9A227'/%3E%3Crect x='26' y='8' width='8' height='8' rx='1.5' fill='%23C9A227'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --graphite:#14171A; --graphite-2:#1C2024; --bottle:#0F2B25;
+    --brass:#C9A227; --brass-dim:#8A6F1C; --porcelain:#F5F1E8;
+    --silver:#8B95A3; --line:#2B3036; --up:#2ECC8F; --warn:#E5735E;
+    --voice:'Playfair Display',Georgia,serif;
+    --ui:'Inter',system-ui,-apple-system,sans-serif;
+    --data:'JetBrains Mono',monospace;
+    --r-ctrl:8px; --r-panel:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--graphite);color:var(--porcelain);font-family:var(--ui);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:22px 24px 72px}
+  a{color:var(--brass);text-decoration:none}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:4px 0 26px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .brand .word{font-family:var(--voice);font-size:25px;font-weight:500;letter-spacing:.12em}
+  .nav a{font-size:14px;color:var(--silver);margin-left:18px}
+  .nav a:hover{color:var(--porcelain)}
+
+  .hero{max-width:680px;margin:22px auto 0}
+  .hero-title{font-family:var(--voice);font-size:clamp(30px,5.2vw,46px);font-weight:500;line-height:1.16;text-align:center;margin-bottom:16px}
+  .hero-sub{text-align:center;color:var(--silver);margin-bottom:34px;font-size:16px;max-width:56ch;margin-left:auto;margin-right:auto}
+
+  .form-card{background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-panel);padding:30px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;color:var(--silver);margin-bottom:7px}
+  .field input,.field select{width:100%;background:var(--graphite);border:1px solid var(--line);color:var(--porcelain);padding:13px 14px;border-radius:var(--r-ctrl);font-size:15px;outline:none;transition:border-color .15s;font-family:var(--ui)}
+  .field input:focus,.field select:focus{border-color:var(--brass)}
+  .field input::placeholder{color:#5a6472}
+  .row{display:flex;gap:14px}
+  .row .field{flex:1}
+  .btn{width:100%;margin-top:8px;background:var(--brass);color:var(--graphite);border:none;padding:15px;border-radius:var(--r-ctrl);font-size:15px;font-weight:500;cursor:pointer;font-family:var(--ui);letter-spacing:.2px;transition:filter .15s}
+  .btn:hover{filter:brightness(1.06)}
+  .form-hint{text-align:center;color:#5a6472;font-size:12.5px;margin-top:15px}
+  .err{border:1px solid rgba(229,115,94,.5);color:var(--warn);padding:12px 16px;border-radius:var(--r-ctrl);margin-top:16px;font-size:14px;display:none;background:rgba(229,115,94,.06)}
+  .err.on{display:block}
+
+  .loading{max-width:560px;margin:76px auto;text-align:center;display:none}
+  .loading.on{display:block}
+  .bowtie-load{width:64px;margin:0 auto 24px;opacity:.9;animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+  .load-step{font-family:var(--voice);font-style:italic;color:var(--porcelain);font-size:18px;height:26px;transition:.3s}
+
+  .dash{display:none}
+  .dash.on{display:block;animation:fade .4s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .back{background:transparent;border:1px solid var(--line);color:var(--silver);padding:9px 16px;border-radius:var(--r-ctrl);cursor:pointer;font-size:13.5px;margin-bottom:22px;font-family:var(--ui)}
+  .back:hover{border-color:var(--brass);color:var(--porcelain)}
+
+  .section{margin-bottom:28px}
+  .section > .eyebrow{display:block;margin-bottom:12px;font-family:var(--data);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--brass-dim)}
+  .card{background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-panel);padding:22px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+  .maitre{background:var(--graphite-2);border:1px solid var(--line);border-left:2px solid var(--brass);border-radius:0 var(--r-ctrl) var(--r-ctrl) 0;padding:20px 24px}
+  .maitre .who{font-family:var(--data);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--silver);margin-bottom:9px}
+  .maitre .txt{font-family:var(--voice);font-size:16.5px;line-height:1.75}
+  .maitre .txt em{font-style:italic}
+
+  .profile-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px}
+  .profile-head .pname{font-family:var(--voice);font-size:25px;font-weight:500}
+  .profile-head .paddr{color:var(--silver);font-size:14px;margin-top:3px}
+  .seg-badge{font-family:var(--data);font-size:11.5px;letter-spacing:.5px;color:var(--brass);border:1px solid var(--brass);padding:5px 12px;border-radius:20px;white-space:nowrap}
+  .platforms{display:flex;gap:14px;margin-top:20px;flex-wrap:wrap}
+  .plat{flex:1;min-width:150px;background:var(--graphite);border:1px solid var(--line);border-radius:var(--r-ctrl);padding:15px 16px}
+  .plat .pl-name{color:var(--silver);font-size:12.5px}
+  .plat .pl-rating{font-family:var(--data);font-size:23px;font-weight:500;margin-top:5px}
+  .plat .pl-reviews{font-family:var(--data);font-size:12px;color:var(--silver);margin-top:3px}
+  .plat.gap{border-color:rgba(229,115,94,.4)}
+  .plat.gap .pl-reviews{color:var(--warn)}
+
+  .metric{background:var(--graphite);border:1px solid var(--line);border-radius:var(--r-ctrl);padding:16px;text-align:center}
+  .metric .v{font-family:var(--data);font-size:24px;font-weight:500}
+  .metric .l{color:var(--silver);font-size:12.5px;margin-top:5px}
+
+  .comp{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--line)}
+  .comp:last-child{border-bottom:none}
+  .comp .c-rank{width:24px;font-family:var(--data);color:var(--silver);font-size:13px;text-align:center}
+  .comp .c-main{flex:1}
+  .comp .c-name{font-family:var(--voice);font-style:italic;font-size:16px}
+  .comp .c-meta{font-family:var(--data);color:var(--silver);font-size:12px;margin-top:2px}
+  .comp .c-rating{font-family:var(--data);font-weight:500;font-size:16px;min-width:52px;text-align:right}
+  .comp .c-dist{font-family:var(--data);color:var(--silver);font-size:12.5px;min-width:66px;text-align:right}
+  .starmark{color:var(--silver);font-size:12px}
+
+  .swot{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .quad{background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-panel);padding:18px 20px}
+  .quad.watch{background:var(--bottle)}
+  .quad h3{font-family:var(--data);font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--silver);margin-bottom:12px}
+  .quad li{list-style:none;font-size:14px;margin-bottom:11px;padding-left:16px;position:relative}
+  .quad li:last-child{margin-bottom:0}
+  .quad li::before{content:"";position:absolute;left:0;top:9px;width:9px;height:4px;background:var(--brass-dim)}
+  .quad li b{font-weight:600}
+  .quad li span{display:block;color:var(--silver);font-size:12.5px;margin-top:2px}
+  .quad li em{font-family:var(--voice);font-style:italic}
+
+  .prio{display:flex;gap:15px;align-items:flex-start;background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-ctrl);padding:16px 18px;margin-bottom:12px}
+  .prio .num{width:26px;font-family:var(--data);font-size:15px;color:var(--brass);flex-shrink:0;padding-top:1px}
+  .prio .p-body{flex:1}
+  .prio .p-title{font-weight:600;margin-bottom:4px}
+  .prio .p-why{color:var(--silver);font-size:13.5px}
+  .prio .p-tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .tag{font-family:var(--data);font-size:11px;letter-spacing:.5px;padding:3px 10px;border-radius:20px;border:1px solid var(--line);color:var(--silver)}
+
+  .cline{background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-ctrl);padding:16px}
+  .cline h4{font-family:var(--voice);font-size:16px;font-weight:500;margin-bottom:5px}
+  .cline p{font-size:12.5px;color:var(--silver)}
+
+  .notice{border:1px solid rgba(242,193,78,.28);background:rgba(242,193,78,.06);color:#e8cd97;padding:11px 16px;border-radius:var(--r-ctrl);font-size:13px;margin-bottom:22px}
+  .footer{margin-top:60px;padding-top:26px;border-top:1px solid var(--line);color:var(--silver);font-size:13px;text-align:center}
+  @media(max-width:700px){.row,.grid3,.swot{grid-template-columns:1fr;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 60 24" width="52" height="21" aria-hidden="true">
+        <path d="M4 4 L26 10 L26 14 L4 20 Z" fill="#C9A227"></path>
+        <path d="M56 4 L34 10 L34 14 L56 20 Z" fill="#C9A227"></path>
+        <rect x="26" y="8" width="8" height="8" rx="1.5" fill="#C9A227"></rect>
+      </svg>
+      <span class="word">МЭТР</span>
+    </div>
+    <div class="nav"><a href="/content">Контент</a> &nbsp; <a href="/social">Соцсети</a> &nbsp; <a href="/trends">Тренды</a> &nbsp; <a href="/crm">Гости</a> &nbsp; <a href="/recruiting">Найм</a> &nbsp; <a href="/settings">Настройки</a> &nbsp; <a href="/logout">Выход</a></div>
+  </div>
+
+  <section id="screen-input">
+    <div class="hero">
+      <div class="hero-title">Знает каждого гостя.<br>Следит за каждым конкурентом.</div>
+      <div class="hero-sub">Назовите заведение — я осмотрю округу, оценю вашу позицию и подготовлю план.</div>
+      <div class="form-card">
+        <div class="field"><label>Название ресторана</label><input id="in-name" placeholder="Например, Nuar" value="Nuar" autocomplete="off"></div>
+        <div class="row">
+          <div class="field"><label>Адрес</label><input id="in-address" placeholder="ул. Советская, 20" value="Советская, 20" autocomplete="off"></div>
+          <div class="field" style="max-width:170px"><label>Город</label><input id="in-city" value="Тюмень" autocomplete="off"></div>
+        </div>
+        <div class="field"><label>Сегмент</label><select id="in-segment"></select></div>
+        <button class="btn" id="btn-go">Позвать МЭТРА</button>
+        <div class="err" id="form-err"></div>
+        <div class="form-hint">Без ключа Yandex — демо-данные округа. С ключом (в настройках) МЭТР наблюдает по реальным источникам.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="loading" id="screen-loading">
+    <svg class="bowtie-load" viewBox="0 0 60 24" aria-hidden="true">
+      <path d="M4 4 L26 10 L26 14 L4 20 Z" fill="#C9A227"></path>
+      <path d="M56 4 L34 10 L34 14 L56 20 Z" fill="#C9A227"></path>
+      <rect x="26" y="8" width="8" height="8" rx="1.5" fill="#C9A227"></rect>
+    </svg>
+    <div class="load-step" id="load-step">Осматриваю ваше заведение…</div>
+  </section>
+
+  <section class="dash" id="screen-dash">
+    <button class="back" id="btn-back">← Другое заведение</button>
+    <div class="notice" id="notice" style="display:none"></div>
+    <div class="section"><span class="eyebrow">Слово МЭТРА</span>
+      <div class="maitre"><div class="who">МЭТР · вечерняя сводка</div><div class="txt" id="maitre-txt"></div></div></div>
+    <div class="section"><span class="eyebrow">Ваш ресторан</span><div class="card" id="profile-card"></div></div>
+    <div class="section" id="position-section"><span class="eyebrow">Позиция в округе</span><div class="grid3" id="position-grid"></div></div>
+    <div class="section" id="competitors-section"><span class="eyebrow">Мэтр наблюдает · конкуренты рядом</span><div class="card" id="competitors-card"></div></div>
+    <div class="section"><span class="eyebrow">SWOT-анализ</span><div class="swot" id="swot"></div></div>
+    <div class="section"><span class="eyebrow">Приоритетные действия</span><div id="priorities"></div></div>
+    <div class="section"><span class="eyebrow">Мэтр приглашает · контент-линии</span><div class="grid3" id="content-lines"></div></div>
+  </section>
+
+  <div class="footer">МЭТР / MAÎTRE · AI-управляющий · данные в РФ (152-ФЗ)</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const LOAD_STEPS=["Осматриваю ваше заведение…","Наблюдаю за конкурентами в округе…","Сверяю рейтинги и отзывы…","Готовлю выводы…"];
+
+// Сегменты встроены в страницу — поле заполняется сразу, не зависит от запроса
+const SEGMENTS={fine_dining:"Fine dining / премиум",restaurant:"Ресторан",bar:"Бар / гастропаб",cafe:"Кафе / кофейня",fast:"Фастфуд / стрит-фуд"};
+$('in-segment').innerHTML=Object.entries(SEGMENTS).map(([v,l])=>`<option value="${v}"${v==='fine_dining'?' selected':''}>${l}</option>`).join('');
+
+function showScreen(n){
+  $('screen-input').style.display=n==='input'?'block':'none';
+  $('screen-loading').classList.toggle('on', n==='loading');
+  $('screen-dash').classList.toggle('on', n==='dash');
+}
+let loadTimer=null;
+function runLoader(){let i=0;$('load-step').textContent=LOAD_STEPS[0];loadTimer=setInterval(()=>{i=(i+1)%LOAD_STEPS.length;$('load-step').textContent=LOAD_STEPS[i];},950);}
+function stopLoader(){clearInterval(loadTimer);}
+
+$('btn-go').onclick=run;
+$('in-name').addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+$('btn-back').onclick=()=>{showScreen('input');window.scrollTo(0,0);};
+
+async function run(){
+  const name=$('in-name').value.trim(), err=$('form-err'); err.classList.remove('on');
+  if(!name){err.textContent='Введите название ресторана';err.classList.add('on');return;}
+  showScreen('loading');runLoader();
+  const started=Date.now();
+  try{
+    const resp=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,address:$('in-address').value.trim(),city:$('in-city').value.trim()||'Тюмень',segment:$('in-segment').value})});
+    const data=await resp.json();
+    await new Promise(r=>setTimeout(r, Math.max(0,1800-(Date.now()-started))));
+    stopLoader();
+    if(!resp.ok) throw new Error(data.error||'Ошибка анализа');
+    render(data); showScreen('dash'); window.scrollTo(0,0);
+  }catch(e){stopLoader();showScreen('input');err.textContent=e.message;err.classList.add('on');}
+}
+
+const ratingColor=r=>r==null||r>=4.5?'var(--porcelain)':'var(--silver)';
+const fmtDist=m=>m==null?'—':(m<1000?`${m} м`:`${(m/1000).toFixed(1)} км`);
+const rate=r=>r==null?'—':`<span class="starmark">★</span> ${r}`;
+
+function render(d){
+  const nt=$('notice'); if(d.notice){nt.textContent=d.notice;nt.style.display='block';}else nt.style.display='none';
+  $('maitre-txt').innerHTML=d.maitre||'';
+
+  const p=d.profile;
+  const plats=(p.platforms||[]).map(pl=>{
+    const gap=pl.ok&&pl.reviews_count!=null&&pl.reviews_count<15;
+    return `<div class="plat ${gap?'gap':''}"><div class="pl-name">${pl.platform}</div>
+      <div class="pl-rating">${pl.ok?rate(pl.rating):'—'}</div>
+      <div class="pl-reviews">${pl.ok?(pl.reviews_count!=null?pl.reviews_count+' отзывов':'нет числа отзывов'):'нет данных'}</div></div>`;}).join('');
+  $('profile-card').innerHTML=`<div class="profile-head"><div><div class="pname">${p.name}</div>
+      <div class="paddr">${[p.address,p.city].filter(Boolean).join(', ')}</div></div>
+      <div class="seg-badge">${p.segment_label}</div></div>
+    <div class="platforms">${plats||'<div class="pl-reviews">Нет данных по площадкам</div>'}</div>`;
+
+  const s=d.strategy;
+  if(s.rank&&s.total_places){
+    $('position-grid').innerHTML=`
+      <div class="metric"><div class="v">${s.rank} / ${s.total_places}</div><div class="l">место по рейтингу в округе</div></div>
+      <div class="metric"><div class="v">${s.your_rating??'—'}</div><div class="l">ваш рейтинг</div></div>
+      <div class="metric"><div class="v">${s.avg_competitor_rating??'—'}</div><div class="l">средний у конкурентов</div></div>`;
+    $('position-section').style.display='block';
+  }else $('position-section').style.display='none';
+
+  const cs=d.competitors||[];
+  if(cs.length){
+    $('competitors-card').innerHTML=cs.map((c,i)=>`<div class="comp"><div class="c-rank">${i+1}</div>
+        <div class="c-main"><div class="c-name">«${c.name}»</div>
+          <div class="c-meta">${[c.address,c.reviews_count!=null?c.reviews_count+' отзывов':''].filter(Boolean).join(' · ')}</div></div>
+        <div class="c-rating" style="color:${ratingColor(c.rating)}">${rate(c.rating)}</div>
+        <div class="c-dist">${fmtDist(c.distance_m)}</div></div>`).join('');
+    $('competitors-section').style.display='block';
+  }else $('competitors-section').style.display='none';
+
+  const liB=it=>`<li><b>${it.text}</b>${it.detail?`<span>${it.detail}</span>`:''}</li>`;
+  const liN=it=>`<li><em>«${it.text}»</em>${it.detail?`<span>${it.detail}</span>`:''}</li>`;
+  const sw=s.swot;
+  const threatNames=new Set((s.top_threats||[]).map(t=>t.name));
+  $('swot').innerHTML=`
+    <div class="quad"><h3>Сильные стороны</h3><ul>${sw.strengths.map(liB).join('')}</ul></div>
+    <div class="quad"><h3>Слабые стороны</h3><ul>${sw.weaknesses.map(liB).join('')}</ul></div>
+    <div class="quad"><h3>Возможности</h3><ul>${sw.opportunities.map(liB).join('')}</ul></div>
+    <div class="quad watch"><h3>Угрозы · наблюдения</h3><ul>${sw.threats.map(t=>threatNames.has(t.text)?liN(t):liB(t)).join('')}</ul></div>`;
+
+  $('priorities').innerHTML=s.priorities.map((pr,i)=>`<div class="prio"><div class="num">${String(i+1).padStart(2,'0')}</div>
+      <div class="p-body"><div class="p-title">${pr.title}</div><div class="p-why">${pr.why}</div>
+        <div class="p-tags"><span class="tag">эффект: ${pr.impact}</span><span class="tag">усилия: ${pr.effort}</span></div></div></div>`).join('');
+
+  $('content-lines').innerHTML=s.content_lines.map(cl=>`<div class="cline"><h4>${cl.title}</h4><p>${cl.desc}</p></div>`).join('');
+}
+</script>
+</body>
+</html>

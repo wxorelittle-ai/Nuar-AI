@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>МЭТР — пример встраивания</title>
+</head>
+<body style="margin:0;background:#14171A">
+
+<!-- ================================================================
+     БЛОК ДЛЯ ВСТАВКИ НА САЙТ.
+     Скопируйте всё от <iframe ...> до </script> в HTML-блок вашего
+     сайта (Tilda: блок T123 / «HTML»; WordPress: блок «Произвольный
+     HTML»; и т.п.). В src укажите адрес, по которому лежит index.html
+     (тот же, куда вы залили витрину).
+================================================================= -->
+
+<iframe
+  id="metr-frame"
+  src="index.html"
+  title="МЭТР — анализ ресторана"
+  scrolling="no"
+  style="width:100%;border:0;display:block;min-height:640px"
+></iframe>
+
+<script>
+  // Подстраивает высоту блока под содержимое (форма → дашборд), без прокрутки.
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'metr-height') {
+      var f = document.getElementById('metr-frame');
+      if (f) f.style.height = e.data.height + 'px';
+    }
+  });
+</script>
+
+</body>
+</html>

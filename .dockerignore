@@ -1,0 +1,20 @@
+# Чистый контекст сборки образа: не тащим лишнее внутрь контейнера.
+.git
+.gitignore
+.env
+data/*
+!data/.gitkeep
+.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+# документация и локальные лаунчеры не нужны в образе
+DEPLOY.md
+*.bat
