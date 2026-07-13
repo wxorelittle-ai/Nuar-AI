@@ -44,7 +44,10 @@ def publish(text: str, cfg: dict | None = None) -> PublishResult:
     except PublishError as exc:
         return PublishResult(ok=False, error=str(exc))
     try:
-        r = httpx.post(url, json=payload, timeout=settings.request_timeout_sec)
+        # local_address="0.0.0.0" принудительно использует IPv4
+        with httpx.Client(timeout=settings.request_timeout_sec,
+                          transport=httpx.HTTPTransport(local_address="0.0.0.0")) as client:
+            r = client.post(url, json=payload)
     except httpx.HTTPError as exc:
         return PublishResult(ok=False, error=f"Telegram: ошибка сети — {exc}")
     if r.status_code != 200:
