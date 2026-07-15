@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, asdict, field
 
 # Сети публикации
-NETWORKS = {"vk": "ВКонтакте", "telegram": "Telegram"}
+NETWORKS = {"vk": "ВКонтакте", "telegram": "Telegram", "max": "MAX"}
 
 # Контент-линии (бренд-гайд: «Мэтр приглашает»)
 CONTENT_LINES = [

@@ -33,11 +33,25 @@ CHANNELS = [
                      "Оставьте пустым, если сервер и так видит api.telegram.org."},
         ],
     },
+    {
+        "key": "max",
+        "title": "MAX",
+        "subtitle": "публикация в канал/чат",
+        "docs": "https://dev.max.ru/docs-api",
+        "help": "Создайте бота у @MasterBot (команда /create), добавьте его в свой "
+                "канал/чат. Укажите токен бота и числовой chat_id. MAX доступен из РФ "
+                "без прокси. Публикация ботов — только для верифицированных юрлиц РФ.",
+        "fields": [
+            {"name": "access_token", "label": "Токен бота", "type": "password", "placeholder": "…"},
+            {"name": "chat_id", "label": "chat_id канала/чата (число)", "type": "text", "placeholder": "-70000000…",
+             "hint": "Числовой id чата/канала, куда добавлен бот."},
+        ],
+    },
 ]
 
 CHANNEL_BY_KEY = {c["key"]: c for c in CHANNELS}
 
 # Публикаторы по ключу канала (ленивая привязка, чтобы избежать циклов импорта)
 def get_publisher(key: str):
-    from . import vk, telegram
-    return {"vk": vk, "telegram": telegram}.get(key)
+    from . import vk, telegram, max as max_pub
+    return {"vk": vk, "telegram": telegram, "max": max_pub}.get(key)

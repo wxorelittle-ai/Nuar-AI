@@ -5,6 +5,7 @@ import httpx
 import pytest
 
 from agents.publishers import telegram, vk
+from agents.publishers import max as maxpub
 from agents.publishers.http import make_client
 
 
@@ -135,3 +136,44 @@ def test_vk_check_api_error(monkeypatch):
 def test_service_test_channel_unknown():
     from agents.content import service
     assert service.test_channel("unknown")["ok"] is False
+
+
+# ── MAX ──────────────────────────────────────────────────────────────
+
+def test_max_build_request_headers_and_params():
+    url, headers, params, body, chat_id = maxpub.build_request(
+        {"access_token": "TKN", "chat_id": "-70123"}, "привет")
+    assert url.endswith("/messages")
+    assert headers["Authorization"] == "TKN"
+    assert params["chat_id"] == "-70123"
+    assert body["text"] == "привет" and body["format"] == "markdown"
+    assert chat_id == "-70123"
+
+
+def test_max_missing_token():
+    res = maxpub.publish("t", {"chat_id": "1"})
+    assert not res.ok and "токен" in res.error
+
+
+def test_max_parse_success():
+    res = maxpub.parse_response(200, {"message": {"body": {"mid": "m42"}}}, "1")
+    assert res.ok and res.external_id == "m42"
+
+
+def test_max_parse_error():
+    res = maxpub.parse_response(403, {"code": "forbidden", "message": "no access"}, "1")
+    assert not res.ok and "no access" in res.error
+
+
+def test_max_check_ok(monkeypatch):
+    class R:
+        status_code = 200
+        def json(self):
+            return {"name": "МЭТР бот"}
+    class C:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def get(self, url, headers=None): return R()
+    monkeypatch.setattr(maxpub, "make_client", lambda proxy=None: C())
+    res = maxpub.check({"access_token": "T"})
+    assert res.ok and res.external_id == "МЭТР бот"

@@ -38,7 +38,7 @@ PRICE_PATTERNS = [
 ]
 
 # Максимальная длина текста по сети
-MAX_LEN = {"telegram": 4096, "vk": 16000}
+MAX_LEN = {"telegram": 4096, "vk": 16000, "max": 4000}
 
 # Эмодзи (основные блоки) — бренд: без эмодзи
 EMOJI_RE = re.compile(

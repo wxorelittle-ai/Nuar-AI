@@ -103,6 +103,7 @@ SECRET_FIELDS: dict[str, set[str]] = {
 CHANNEL_SECRET_FIELDS: dict[str, set[str]] = {
     "vk": {"access_token"},
     "telegram": {"bot_token"},
+    "max": {"access_token"},
 }
 
 
