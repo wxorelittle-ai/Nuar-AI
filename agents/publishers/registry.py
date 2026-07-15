@@ -21,11 +21,16 @@ CHANNELS = [
         "subtitle": "публикация в канал",
         "docs": "https://core.telegram.org/bots/api#sendmessage",
         "help": "Создайте бота у @BotFather, добавьте его администратором в свой канал. "
-                "Укажите токен бота и канал (@username или числовой chat_id).",
+                "Укажите токен бота и канал (@username или числовой chat_id). "
+                "Если сервер не пропускает Telegram — впишите прокси.",
         "fields": [
             {"name": "bot_token", "label": "Токен бота", "type": "password", "placeholder": "1234567:AA…"},
             {"name": "channel", "label": "Канал", "type": "text", "placeholder": "@my_restaurant",
              "hint": "@username публичного канала или chat_id вида -100…"},
+            {"name": "proxy", "label": "Прокси (если Telegram заблокирован)", "type": "text",
+             "placeholder": "http://user:pass@host:port",
+             "hint": "Необязательно. http://…, https://… или socks5://… "
+                     "Оставьте пустым, если сервер и так видит api.telegram.org."},
         ],
     },
 ]

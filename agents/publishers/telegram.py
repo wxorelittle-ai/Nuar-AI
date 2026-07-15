@@ -9,6 +9,7 @@ import httpx
 
 from config.settings import settings
 from .base import PublishResult, PublishError
+from .http import make_client
 
 API_BASE = "https://api.telegram.org"
 
@@ -43,10 +44,10 @@ def publish(text: str, cfg: dict | None = None) -> PublishResult:
         url, payload, channel = build_request(cfg, text)
     except PublishError as exc:
         return PublishResult(ok=False, error=str(exc))
+    proxy = cfg.get("proxy") or settings.telegram_proxy
     try:
-        # local_address="0.0.0.0" принудительно использует IPv4
-        with httpx.Client(timeout=settings.request_timeout_sec,
-                          transport=httpx.HTTPTransport(local_address="0.0.0.0")) as client:
+        # IPv4 + опциональный прокси для обхода блокировки Telegram
+        with make_client(proxy) as client:
             r = client.post(url, json=payload)
     except httpx.HTTPError as exc:
         return PublishResult(ok=False, error=f"Telegram: ошибка сети — {exc}")

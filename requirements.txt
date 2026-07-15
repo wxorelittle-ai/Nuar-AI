@@ -1,6 +1,6 @@
 # ── РестоПульс · Competitor Scraper Agent — зависимости ──────────────
-# HTTP-клиент (синхронный, с ретраями)
-httpx==0.27.2
+# HTTP-клиент (синхронный, с ретраями). [socks] — для socks5-прокси Telegram
+httpx[socks]==0.27.2
 # Парсинг HTML-карточек 2ГИС / Яндекс (fallback, когда нет API-ключа)
 beautifulsoup4==4.12.3
 # Чтение config/competitors.yaml

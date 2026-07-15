@@ -46,6 +46,10 @@ class Settings:
     # Telegram
     telegram_bot_token: str = field(default_factory=lambda: _get("TELEGRAM_BOT_TOKEN"))
     telegram_chat_id: str = field(default_factory=lambda: _get("TELEGRAM_CHAT_ID"))
+    # Прокси для обхода egress-блокировки Telegram у провайдера сервера.
+    # Формат: http://host:port , http://user:pass@host:port или socks5://host:port
+    # (для socks нужен пакет httpx[socks]). Fallback, если в UI прокси не задан.
+    telegram_proxy: str = field(default_factory=lambda: _get("TELEGRAM_PROXY"))
 
     # VK API
     vk_service_token: str = field(default_factory=lambda: _get("VK_SERVICE_TOKEN"))
