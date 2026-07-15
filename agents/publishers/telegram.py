@@ -59,6 +59,34 @@ def publish(text: str, cfg: dict | None = None) -> PublishResult:
     return parse_response(r.json(), channel)
 
 
+def check(cfg: dict | None = None) -> PublishResult:
+    """Проверка подключения: getMe через прокси (не публикует ничего).
+
+    Подтверждает сразу две вещи — токен бота валиден И прокси/сеть реально
+    достаёт api.telegram.org.
+    """
+    cfg = cfg if cfg is not None else _cfg()
+    token = (cfg.get("bot_token") or "").strip()
+    if not token:
+        return PublishResult(ok=False, error="Telegram: не задан токен бота")
+    proxy = cfg.get("proxy") or settings.telegram_proxy
+    try:
+        with make_client(proxy) as client:
+            r = client.get(f"{API_BASE}/bot{token}/getMe")
+    except httpx.HTTPError as exc:
+        hint = " (проверьте прокси)" if proxy else " (сервер не видит Telegram — нужен прокси)"
+        return PublishResult(ok=False, error=f"Telegram: ошибка сети — {exc}{hint}")
+    try:
+        data = r.json()
+    except Exception:
+        return PublishResult(ok=False, error=f"Telegram: HTTP {r.status_code}")
+    if not data.get("ok"):
+        return PublishResult(ok=False, error=f"Telegram: {data.get('description', 'токен отклонён')}")
+    uname = data.get("result", {}).get("username", "")
+    return PublishResult(ok=True, external_id=uname,
+                         link=f"https://t.me/{uname}" if uname else "")
+
+
 def _cfg() -> dict:
     from config.store import store
     return store.get_channel_config("telegram")

@@ -60,6 +60,45 @@ def publish(text: str, cfg: dict | None = None) -> PublishResult:
     return parse_response(r.json(), group_id)
 
 
+VK_GROUPS_GET = "https://api.vk.com/method/groups.getById"
+
+
+def check(cfg: dict | None = None) -> PublishResult:
+    """Проверка подключения: groups.getById (не публикует ничего).
+
+    Подтверждает, что токен сообщества валиден и сообщество доступно.
+    """
+    cfg = cfg if cfg is not None else _cfg()
+    token = (cfg.get("access_token") or "").strip()
+    group_id = str(cfg.get("group_id", "")).lstrip("-").strip()
+    if not token:
+        return PublishResult(ok=False, error="VK: не задан access_token сообщества")
+    if not group_id:
+        return PublishResult(ok=False, error="VK: не задан числовой id сообщества (group_id)")
+    params = {
+        "group_id": group_id,
+        "access_token": token,
+        "v": settings.vk_api_version or "5.199",
+    }
+    try:
+        with make_client(cfg.get("proxy")) as client:
+            r = client.post(VK_GROUPS_GET, data=params)
+    except httpx.HTTPError as exc:
+        return PublishResult(ok=False, error=f"VK: ошибка сети — {exc}")
+    try:
+        data = r.json()
+    except Exception:
+        return PublishResult(ok=False, error=f"VK: HTTP {r.status_code}")
+    if "error" in data:
+        return PublishResult(ok=False, error=f"VK: {data['error'].get('error_msg', 'ошибка')}")
+    resp = data.get("response")
+    # 5.199 отдаёт {"groups":[...]}, старые версии — список
+    groups = resp.get("groups") if isinstance(resp, dict) else resp
+    name = groups[0].get("name") if groups else ""
+    return PublishResult(ok=True, external_id=str(name or group_id),
+                         link=f"https://vk.com/club{group_id}")
+
+
 def _cfg() -> dict:
     from config.store import store
     return store.get_channel_config("vk")

@@ -91,6 +91,11 @@ class ChannelsRequest(BaseModel):
     channels: dict[str, dict] = {}
 
 
+class ChannelTestRequest(BaseModel):
+    network: str
+    config: dict = {}
+
+
 class GenerateRequest(BaseModel):
     network: str = "vk"
     content_line: str = ""
@@ -256,6 +261,12 @@ def get_channels() -> JSONResponse:
 def save_channels(req: ChannelsRequest) -> JSONResponse:
     content.apply_channels(req.channels)
     return JSONResponse(content.ui_channels())
+
+
+@app.post("/api/channels/test")
+def test_channel(req: ChannelTestRequest) -> JSONResponse:
+    """Проверка подключения канала на введённых/сохранённых данных."""
+    return JSONResponse(content.test_channel(req.network, req.config))
 
 
 # ── Контент: генерация, черновики, публикация ─────────────────────────

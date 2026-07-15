@@ -294,7 +294,29 @@ function channelCard(c){
     </div></div>
     ${c.help?`<div class="help">${c.help} ${c.docs?`<a href="${c.docs}" target="_blank" rel="noopener">Документация ↗</a>`:''}</div>`:''}
     <div class="fields">${fields}</div>
+    <div class="trial-row" style="margin-top:14px">
+      <button class="btn" onclick="testChannel('${c.key}')">Проверить подключение</button>
+      <span class="test-result" id="chtest-${c.key}"></span>
+    </div>
   </div>`;
+}
+function channelPatch(c){
+  const patch={};
+  for(const f of c.fields){
+    const el=$(`fld-${c.key}-${f.name}`); if(!el) continue;
+    if(f.type==='password'){ if(el.value.trim()!=='') patch[f.name]=el.value.trim(); }
+    else if(el.value.trim()!=='') patch[f.name]=el.value.trim();
+  }
+  return patch;
+}
+async function testChannel(key){
+  const el=$('chtest-'+key); el.textContent='Проверяю…'; el.className='test-result';
+  const c=CH.channels.find(x=>x.key===key);
+  const resp=await fetch('/api/channels/test',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({network:key, config:channelPatch(c)})});
+  const data=await resp.json();
+  el.textContent=data.message||(data.ok?'OK':'Ошибка');
+  el.className='test-result '+(data.ok?'ok':'err');
 }
 async function saveChannels(){
   const msg=$('save-ch-msg'); msg.textContent='Сохраняю…'; msg.className='msg';

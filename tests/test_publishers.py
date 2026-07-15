@@ -79,3 +79,59 @@ def test_vk_build_request_owner_id_negative():
 def test_vk_missing_token_errors():
     res = vk.publish("t", {"group_id": "1"})
     assert not res.ok and "access_token" in res.error
+
+
+# ── check() ──────────────────────────────────────────────────────────
+
+def _fake_client(status, payload, capture=None):
+    class R:
+        status_code = status
+        def json(self):
+            return payload
+    class C:
+        def __init__(self, proxy=None):
+            if capture is not None:
+                capture["proxy"] = proxy
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+        def get(self, url):
+            return R()
+        def post(self, url, data=None):
+            return R()
+    return C
+
+
+def test_telegram_check_ok(monkeypatch):
+    cap = {}
+    monkeypatch.setattr(telegram, "make_client",
+                        lambda proxy=None: _fake_client(200, {"ok": True, "result": {"username": "mybot"}}, cap)(proxy))
+    res = telegram.check({"bot_token": "T", "channel": "@c", "proxy": "http://p:3128"})
+    assert res.ok and res.external_id == "mybot"
+    assert cap["proxy"] == "http://p:3128"
+
+
+def test_telegram_check_no_token():
+    res = telegram.check({"channel": "@c"})
+    assert not res.ok and "токен" in res.error
+
+
+def test_vk_check_ok(monkeypatch):
+    monkeypatch.setattr(vk, "make_client",
+                        lambda proxy=None: _fake_client(200, {"response": {"groups": [{"name": "Моё кафе"}]}})(proxy))
+    res = vk.check({"access_token": "tok", "group_id": "123"})
+    assert res.ok and res.external_id == "Моё кафе"
+    assert res.link == "https://vk.com/club123"
+
+
+def test_vk_check_api_error(monkeypatch):
+    monkeypatch.setattr(vk, "make_client",
+                        lambda proxy=None: _fake_client(200, {"error": {"error_msg": "invalid token"}})(proxy))
+    res = vk.check({"access_token": "bad", "group_id": "1"})
+    assert not res.ok and "invalid token" in res.error
+
+
+def test_service_test_channel_unknown():
+    from agents.content import service
+    assert service.test_channel("unknown")["ok"] is False

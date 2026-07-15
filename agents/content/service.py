@@ -161,6 +161,26 @@ def apply_channels(channels_patch: dict) -> None:
     settings_store.update_channels(channels_patch)
 
 
+def test_channel(network: str, patch: dict | None = None) -> dict:
+    """Проверка подключения канала. Возвращает {ok, message}.
+
+    За основу берётся сохранённый конфиг; переданные непустые поля (напр.
+    только что введённый токен) его перекрывают — можно проверять до сохранения.
+    """
+    pub = get_publisher(network)
+    if pub is None or not hasattr(pub, "check"):
+        return {"ok": False, "message": "Неизвестный канал"}
+    cfg = dict(settings_store.get_channel_config(network))
+    for k, v in (patch or {}).items():
+        if v not in (None, ""):
+            cfg[k] = v
+    res = pub.check(cfg)
+    if res.ok:
+        who = f" ({res.external_id})" if res.external_id else ""
+        return {"ok": True, "message": f"Связь есть{who}", "link": res.link}
+    return {"ok": False, "message": res.error}
+
+
 def meta() -> dict:
     """Справочники для UI композера."""
     return {
