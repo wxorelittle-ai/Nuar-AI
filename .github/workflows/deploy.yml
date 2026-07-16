@@ -71,38 +71,54 @@ jobs:
           echo "✓ Все три секрета на месте"
           echo "ready=true" >> "$GITHUB_OUTPUT"
 
-      - name: Подготовить SSH-ключ
+      # Шаги нарочно атомарные: список шагов и их итоги видны в публичном API,
+      # а логи требуют админ-прав. Так причина падения читается без логов.
+      - name: 'Ключ: записать'
         if: steps.check.outputs.ready == 'true'
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           # tr -d '\r' — ключ, скопированный на Windows (`type key | clip`), приезжает
           # с CRLF, и OpenSSH отвергает его как «invalid format». Вычищаем.
           printf '%s\n' "$DEPLOY_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          echo "Строк в ключе: $(wc -l < ~/.ssh/deploy_key)"
 
-          # Диагностика без утечки секрета: только форма ключа, не содержимое
+      - name: 'Ключ: это приватный ключ?'
+        if: steps.check.outputs.ready == 'true'
+        run: |
           if ! head -1 ~/.ssh/deploy_key | grep -q 'BEGIN .*PRIVATE KEY'; then
-            echo "✗ DEPLOY_SSH_KEY не похож на приватный ключ."
-            echo "  Первая строка должна быть -----BEGIN OPENSSH PRIVATE KEY-----"
-            echo "  Похоже, вставлен ПУБЛИЧНЫЙ ключ (.pub) или ключ обрезан."
+            echo "✗ Первая строка НЕ «-----BEGIN OPENSSH PRIVATE KEY-----»."
+            echo "  Скорее всего в секрет вставлен ПУБЛИЧНЫЙ ключ (.pub) или ключ обрезан."
+            echo "  Первая строка (без секретов): $(head -c 40 ~/.ssh/deploy_key)…"
             exit 1
           fi
+          echo "✓ Форма приватного ключа верная"
+
+      - name: 'Ключ: читается OpenSSH?'
+        if: steps.check.outputs.ready == 'true'
+        run: |
           if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
-            echo "✗ Ключ нечитаем (повреждён или задан с парольной фразой)."
+            echo "✗ OpenSSH не может прочитать ключ: повреждён при вставке"
+            echo "  (пропущены строки/пробелы) либо на ключе стоит парольная фраза."
             exit 1
           fi
-          echo "✓ Ключ валиден, отпечаток:"
+          echo "✓ Ключ читается. Отпечаток:"
           ssh-keygen -lf ~/.ssh/deploy_key
 
-          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+      - name: 'Сервер: получить host key (порт 22 доступен?)'
+        if: steps.check.outputs.ready == 'true'
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          ssh-keyscan -T 15 -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
           if [ ! -s ~/.ssh/known_hosts ]; then
-            echo "✗ Не удалось получить host key с $DEPLOY_HOST — хост недоступен по 22 порту?"
+            echo "✗ Host key не получен: порт 22 на $DEPLOY_HOST недоступен с раннера GitHub."
+            echo "  Вероятно, firewall провайдера пускает SSH не отовсюду."
             exit 1
           fi
-          echo "✓ Host key получен"
+          echo "✓ Host key получен — порт 22 доступен"
 
       - name: Проверить связь с сервером
         if: steps.check.outputs.ready == 'true'
