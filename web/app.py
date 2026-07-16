@@ -404,6 +404,17 @@ def trends_topics() -> dict:
     return {"topics": trends.default_topics()}
 
 
+@app.get("/api/trends/geo")
+def trends_geo() -> JSONResponse:
+    """Мир vs рус. аудитория: где тема уже растёт, а где ещё нет."""
+    try:
+        data = trends.analyze_geo()
+    except Exception as exc:
+        log.exception("Ошибка гео-анализа трендов")
+        return JSONResponse({"error": f"Ошибка: {exc}"}, status_code=500)
+    return JSONResponse(data)
+
+
 @app.get("/api/trends")
 def trends_analyze(topics: str = "") -> JSONResponse:
     topic_list = [t.strip() for t in topics.split(",") if t.strip()] if topics else None

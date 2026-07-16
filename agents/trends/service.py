@@ -5,8 +5,9 @@ import logging
 import time
 from datetime import datetime, timezone, timedelta
 
+from . import geo
 from . import wikipedia
-from .models import DEFAULT_TOPICS
+from .models import DEFAULT_TOPICS, GEO_TOPICS
 
 log = logging.getLogger("restopulse.trends")
 
@@ -72,3 +73,26 @@ def _notice(ok: list, skipped: list) -> str:
 
 def default_topics() -> list[str]:
     return list(DEFAULT_TOPICS)
+
+
+def analyze_geo(today=None) -> dict:
+    """Сравнение уровней: мир (en.wikipedia) vs рус. аудитория (ru.wikipedia).
+
+    Главный сигнал — «едет к нам»: растёт в мире, но у нас ещё нет.
+    """
+    today = today or datetime.now(timezone.utc).date()
+    start, end = _date_range(today)
+    trends = geo.compare(GEO_TOPICS, start, end)
+    ranked = geo.rank(trends)
+    skipped = [t.topic for t in trends if not t.ok]
+    coming = [t for t in ranked if t.verdict == "coming"]
+    return {
+        "window_days": WINDOW_DAYS,
+        "trends": [t.to_dict() for t in ranked],
+        "coming": [t.to_dict() for t in coming],
+        "skipped": skipped,
+        "suggestions": [{"topic": t.topic, "text": t.note} for t in ranked[:4] if t.note],
+        "notice": ("Уровни: мир — en.wikipedia, рус. аудитория (РФ и СНГ) — ru.wikipedia. "
+                   "Прокси интереса за ~2 месяца, не прямые продажи." +
+                   (f" Пропущено (нет данных): {', '.join(skipped)}." if skipped else "")),
+    }

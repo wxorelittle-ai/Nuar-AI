@@ -45,6 +45,23 @@
   .sugg .t{font-family:var(--voice);font-size:16px;margin-bottom:4px}
   .sugg .w{font-size:13.5px;color:#cfe3d8}
 
+  .tabs{display:flex;gap:8px;margin-bottom:18px}
+  .tabs button{font-family:var(--ui);font-size:13.5px;padding:9px 16px;border-radius:var(--r-ctrl);border:1px solid var(--line);background:transparent;color:var(--silver);cursor:pointer}
+  .tabs button.on{background:var(--brass);color:var(--graphite);border-color:var(--brass);font-weight:500}
+  .pane{display:none}.pane.on{display:block}
+
+  .grow{display:flex;align-items:center;gap:14px;padding:12px 4px;border-bottom:1px solid var(--line)}
+  .grow:last-child{border-bottom:none}
+  .grow .name{font-weight:600;min-width:140px}
+  .grow .v{font-family:var(--data);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-radius:20px;padding:3px 10px;white-space:nowrap}
+  .v.coming{background:rgba(46,204,143,.14);color:var(--up);border:1px solid rgba(46,204,143,.3)}
+  .v.here{background:rgba(201,162,39,.12);color:var(--brass);border:1px solid rgba(201,162,39,.3)}
+  .v.local{background:rgba(201,162,39,.08);color:#d8b957;border:1px solid var(--line)}
+  .v.fading,.v.flat{color:var(--silver);border:1px solid var(--line)}
+  .grow .lv{font-family:var(--data);font-size:12.5px;color:var(--silver);margin-left:auto;white-space:nowrap}
+  .grow .lv b{font-weight:500}
+  .grow .lv .u{color:var(--up)} .grow .lv .d{color:var(--warn)}
+
   .trow{display:flex;align-items:center;gap:14px;padding:12px 4px;border-bottom:1px solid var(--line)}
   .trow:last-child{border-bottom:none}
   .trow .name{font-weight:600;min-width:150px}
@@ -67,27 +84,85 @@
 
   <span class="eyebrow">Мэтр в тренде</span>
   <h1>Что набирает интерес</h1>
-  <div class="lead">Динамика интереса к блюдам, кухням и форматам за ~2 месяца — по данным Wikipedia. Растущие темы МЭТР предлагает обыграть в контенте и сезонном меню. Можно задать свои темы (через запятую).</div>
+  <div class="lead">Динамика интереса за ~2 месяца по данным Wikipedia. «Мир vs мы» сравнивает два уровня и ищет главное окно: тема уже растёт в мире, но у нас ещё нет — значит, можно зайти форматом первыми в городе.</div>
 
-  <div class="card">
-    <div class="row">
-      <div class="field"><label>Темы (необязательно; по умолчанию — подборка для ресторана)</label><input id="topics" placeholder="Пицца, Матча, Рамен, Комбуча"></div>
-      <button class="btn" id="go">Показать тренды</button>
-    </div>
-    <div class="hint">Темы — названия статей Wikipedia. Анализ занимает несколько секунд (последовательные запросы к API).</div>
+  <div class="tabs">
+    <button id="tabGeo" class="on" onclick="showTab('geo')">Мир vs мы</button>
+    <button id="tabTopics" onclick="showTab('topics')">Свои темы</button>
   </div>
 
-  <div class="loading" id="loading">Мэтр смотрит, что в тренде…</div>
-  <div id="out"></div>
+  <div class="pane on" id="paneGeo">
+    <div class="card">
+      <div class="row">
+        <button class="btn" id="goGeo">Сравнить уровни</button>
+        <div class="hint" style="margin:0">Подборка тем для бара: коктейли, крепкий алкоголь, музыка, форматы. Сбор занимает ~10–15 секунд.</div>
+      </div>
+    </div>
+    <div class="loading" id="loadingGeo">Мэтр сверяет мир и нас…</div>
+    <div id="outGeo"></div>
+  </div>
 
-  <div class="footer">МЭТР / MAÎTRE · источник: Wikipedia Pageviews · прокси интереса, не прямые продажи</div>
+  <div class="pane" id="paneTopics">
+    <div class="card">
+      <div class="row">
+        <div class="field"><label>Темы (необязательно; по умолчанию — подборка для ресторана)</label><input id="topics" placeholder="Пицца, Матча, Рамен, Комбуча"></div>
+        <button class="btn" id="go">Показать тренды</button>
+      </div>
+      <div class="hint">Темы — названия статей Wikipedia (русские). Анализ занимает несколько секунд.</div>
+    </div>
+    <div class="loading" id="loading">Мэтр смотрит, что в тренде…</div>
+    <div id="out"></div>
+  </div>
+
+  <div class="footer">МЭТР / MAÎTRE · источник: Wikipedia Pageviews (ru — рус. аудитория, en — мир) · прокси интереса, не прямые продажи</div>
 </div>
 
 <script>
 const $=id=>document.getElementById(id);
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 $('go').onclick=run;
+$('goGeo').onclick=runGeo;
 $('topics').addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+
+function showTab(which){
+  const geo=which==='geo';
+  $('paneGeo').classList.toggle('on',geo); $('paneTopics').classList.toggle('on',!geo);
+  $('tabGeo').classList.toggle('on',geo); $('tabTopics').classList.toggle('on',!geo);
+  if(!geo && !$('out').innerHTML) run();
+}
+
+// ── Мир vs мы ──
+async function runGeo(){
+  $('goGeo').disabled=true; $('loadingGeo').classList.add('on'); $('outGeo').innerHTML='';
+  try{
+    const d=await (await fetch('/api/trends/geo')).json();
+    if(d.error){ $('outGeo').innerHTML=`<div class="notice">${esc(d.error)}</div>`; return; }
+    renderGeo(d);
+  }catch(e){ $('outGeo').innerHTML=`<div class="notice">Ошибка: ${esc(e.message)}</div>`; }
+  finally{ $('goGeo').disabled=false; $('loadingGeo').classList.remove('on'); }
+}
+
+function pct(v){
+  const cls=v>0?'u':(v<0?'d':'');
+  return `<span class="${cls}">${v>0?'+':''}${v.toFixed(0)}%</span>`;
+}
+function grow(t){
+  return `<div class="grow">
+    <div class="name">${esc(t.topic)}</div>
+    <span class="v ${esc(t.verdict)}">${esc(t.verdict_label)}</span>
+    <div class="lv"><b>мир</b> ${pct(t.world_growth)} · <b>у нас</b> ${pct(t.ru_growth)}</div>
+  </div>`;
+}
+
+function renderGeo(d){
+  const coming=(d.coming||[]).map(t=>`<div class="sugg"><div class="t">${esc(t.topic)} — едет к нам</div><div class="w">${esc(t.note)}</div></div>`).join('');
+  const rows=(d.trends||[]).map(grow).join('');
+  $('outGeo').innerHTML=`
+    ${d.notice?`<div class="notice">${esc(d.notice)}</div>`:''}
+    ${coming?`<div class="section"><span class="eyebrow">Окно возможностей</span>${coming}</div>`
+      :'<div class="notice">Сейчас нет тем, которые растут в мире и ещё не дошли до нас. Это нормально — окно появляется не каждую неделю.</div>'}
+    ${rows?`<div class="section"><span class="eyebrow">Все темы · мир vs мы</span><div class="card" style="padding:8px 18px">${rows}</div></div>`:''}`;
+}
 
 async function run(){
   $('go').disabled=true; $('loading').classList.add('on'); $('out').innerHTML='';
@@ -123,7 +198,7 @@ function render(d){
     ${stable?`<div class="section"><span class="eyebrow">Стабильные</span><div class="card" style="padding:8px 18px">${stable}</div></div>`:''}`;
 }
 
-run();
+runGeo();
 </script>
 </body>
 </html>

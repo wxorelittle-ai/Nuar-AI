@@ -45,9 +45,14 @@ def _trend_lines(*, force: bool = False) -> list[str]:
     if not force:
         return []
     try:
-        from agents.trends.service import analyze
-        data = analyze()
-        lines = [f"{r['topic']} (+{r['growth']}%)" for r in data.get("rising", [])[:5]]
+        from agents.trends.service import analyze_geo
+        data = analyze_geo()
+        # Ценность в вердикте, а не в проценте: «едет к нам» — окно зайти первыми,
+        # «наша волна» — тема уже греется у нас. Остальное движку не нужно.
+        lines = [f"{t['topic']} — {t['verdict_label']} "
+                 f"(мир {t['world_growth']:+.0f}%, у нас {t['ru_growth']:+.0f}%)"
+                 for t in data.get("trends", [])
+                 if t["verdict"] in ("coming", "local")][:5]
     except Exception as exc:
         log.debug("Тренды недоступны: %s", exc)
         return []

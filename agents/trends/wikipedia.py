@@ -60,8 +60,8 @@ def trend_from_series(views: list[int]) -> dict:
     }
 
 
-def fetch_topic(topic: str, start: str, end: str) -> TopicTrend:
-    url = build_url(topic, start, end)
+def fetch_topic(topic: str, start: str, end: str, project: str = PROJECT) -> TopicTrend:
+    url = build_url(topic, start, end, project)
     try:
         r = httpx.get(url, headers=_headers(), timeout=TIMEOUT)
     except httpx.HTTPError as exc:
