@@ -33,6 +33,7 @@ class SettingsStore:
         data.setdefault("active_provider", "")
         data.setdefault("providers", {})
         data.setdefault("channels", {})
+        data.setdefault("venue", {})
         return data
 
     def _load(self) -> dict:
@@ -78,6 +79,18 @@ class SettingsStore:
             if active_provider is not None:
                 data["active_provider"] = active_provider
             self._merge_section(data, "providers", providers_patch, SECRET_FIELDS)
+            self._save(data)
+
+    # ── ДНК заведения (профиль для идейного движка) ───────────────────
+    def get_venue(self) -> dict:
+        return self._load().get("venue", {}) or {}
+
+    def update_venue(self, patch: dict) -> None:
+        with _LOCK:
+            data = self._load()
+            venue = data.setdefault("venue", {})
+            for k, v in (patch or {}).items():
+                venue[k] = v
             self._save(data)
 
     # ── каналы публикации (соцсети) ───────────────────────────────────

@@ -31,6 +31,7 @@ from agents.recruiting import service as recruiting
 from agents.social import service as social
 from agents.crm import service as crm
 from agents.trends import service as trends
+from agents.programming import service as programming
 from db import database
 from web import auth
 
@@ -118,6 +119,10 @@ class CrmMessageRequest(BaseModel):
     trigger: str = "absence"
 
 
+class VenueRequest(BaseModel):
+    venue: dict = {}
+
+
 class PostRequest(BaseModel):
     id: str | None = None
     network: str = "vk"
@@ -196,6 +201,11 @@ def crm_page() -> HTMLResponse:
 @app.get("/trends", response_class=HTMLResponse)
 def trends_page() -> HTMLResponse:
     return _page("trends.html")
+
+
+@app.get("/programma", response_class=HTMLResponse)
+def programma_page() -> HTMLResponse:
+    return _page("programma.html")
 
 
 # ── Анализ ────────────────────────────────────────────────────────────
@@ -394,6 +404,30 @@ def trends_analyze(topics: str = "") -> JSONResponse:
         data = trends.analyze(topic_list)
     except Exception as exc:
         log.exception("Ошибка анализа трендов")
+        return JSONResponse({"error": f"Ошибка: {exc}"}, status_code=500)
+    return JSONResponse(data)
+
+
+# ── Программа заведения («Мэтр программирует») ────────────────────────
+@app.get("/api/venue")
+def get_venue() -> dict:
+    return {"venue": programming.get_dna().to_dict()}
+
+
+@app.post("/api/venue")
+def save_venue(req: VenueRequest) -> JSONResponse:
+    dna = programming.save_dna(req.venue)
+    return JSONResponse({"venue": dna.to_dict()})
+
+
+@app.get("/api/programma")
+def api_programma(month: int = 0, n: int = 5, llm: int = 1, trends_on: int = 0) -> JSONResponse:
+    try:
+        data = programming.programma(
+            month=month or None, n=max(1, min(n, 8)),
+            use_llm=bool(llm), with_trends=bool(trends_on))
+    except Exception as exc:
+        log.exception("Ошибка генерации программы")
         return JSONResponse({"error": f"Ошибка: {exc}"}, status_code=500)
     return JSONResponse(data)
 
