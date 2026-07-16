@@ -6,8 +6,9 @@ import time
 from datetime import datetime, timezone
 
 from . import calendar as cal
+from . import campaign as camp
 from . import engine
-from .models import VenueDNA
+from .models import VenueDNA, EventConcept
 
 log = logging.getLogger("restopulse.programming")
 
@@ -72,7 +73,9 @@ def programma(*, year: int | None = None, month: int | None = None, n: int = 5,
     year = year or now.year
     month = month or now.month
     dna = get_dna()
-    occasions = cal.occasions_for(year, month)
+    # Программа смотрит вперёд: прошедшие поводы текущего месяца — шум
+    today_iso = now.date().isoformat()
+    occasions = [o for o in cal.occasions_for(year, month) if o.date >= today_iso]
     trends = _trend_lines(force=with_trends)
     obs = _competitor_obs()
     concepts, mode = engine.generate(
@@ -84,4 +87,23 @@ def programma(*, year: int | None = None, month: int | None = None, n: int = 5,
         "occasions": [o.to_dict() for o in occasions],
         "trends": trends,
         "concepts": [c.to_dict() for c in concepts],
+        "notice": ("" if occasions else
+                   "В этом месяце поводы уже прошли — выберите следующий месяц."),
     }
+
+
+# ── Кампания из концепта ──────────────────────────────────────────────
+def campaign(concept_data: dict, *, networks: list[str] | None = None,
+             use_llm: bool = True, save: bool = False) -> dict:
+    """Строит серию постов под концепт. save=True — кладёт черновиками в очередь."""
+    known = set(EventConcept.__dataclass_fields__)
+    concept = EventConcept(**{k: v for k, v in (concept_data or {}).items() if k in known})
+    if not concept.date:
+        raise ValueError("У концепта нет даты — кампанию не построить")
+    dna = get_dna()
+    beats, mode = camp.build(concept, dna, networks=networks, use_llm=use_llm)
+    out = {"mode": mode, "concept": concept.title, "date": concept.date,
+           "beats": [b.to_dict() for b in beats]}
+    if save:
+        out["saved"] = camp.save_as_drafts(beats)
+    return out

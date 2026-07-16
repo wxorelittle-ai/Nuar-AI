@@ -123,6 +123,13 @@ class VenueRequest(BaseModel):
     venue: dict = {}
 
 
+class CampaignRequest(BaseModel):
+    concept: dict
+    networks: list[str] = ["vk"]
+    llm: bool = True
+    save: bool = False
+
+
 class PostRequest(BaseModel):
     id: str | None = None
     network: str = "vk"
@@ -428,6 +435,20 @@ def api_programma(month: int = 0, n: int = 5, llm: int = 1, trends_on: int = 0) 
             use_llm=bool(llm), with_trends=bool(trends_on))
     except Exception as exc:
         log.exception("Ошибка генерации программы")
+        return JSONResponse({"error": f"Ошибка: {exc}"}, status_code=500)
+    return JSONResponse(data)
+
+
+@app.post("/api/programma/campaign")
+def api_campaign(req: CampaignRequest) -> JSONResponse:
+    """Концепт → серия постов. save=true кладёт их черновиками в очередь контента."""
+    try:
+        data = programming.campaign(req.concept, networks=req.networks,
+                                    use_llm=req.llm, save=req.save)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    except Exception as exc:
+        log.exception("Ошибка сборки кампании")
         return JSONResponse({"error": f"Ошибка: {exc}"}, status_code=500)
     return JSONResponse(data)
 
