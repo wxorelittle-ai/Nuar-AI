@@ -19,6 +19,8 @@ log = logging.getLogger("restopulse.parser.vk")
 
 VK_API = "https://api.vk.com/method"
 WEEK_SECONDS = 7 * 24 * 3600
+MAX_POSTS_KEPT = 30      # корпус для анализа форматов
+MAX_POST_TEXT = 600      # символов на пост — хватает, чтобы поймать формат
 
 
 def _api_call(method: str, params: dict) -> dict | None:
@@ -77,6 +79,13 @@ def fetch(competitor: Competitor, *, now_ts: int) -> SourceSnapshot:
         if items:
             newest = max(items, key=lambda p: p.get("date", 0))
             snap.latest_post_text = (newest.get("text") or "").strip()[:400]
+            # Держим корпус текстов: по нему видно, какие форматы конкурент
+            # проводит, а какие не упоминает вовсе.
+            snap.recent_post_texts = [
+                (p.get("text") or "").strip()[:MAX_POST_TEXT]
+                for p in sorted(items, key=lambda p: p.get("date", 0), reverse=True)
+                if (p.get("text") or "").strip()
+            ][:MAX_POSTS_KEPT]
 
     snap.ok = snap.subscribers is not None or snap.posts_last_week is not None
     if not snap.ok:

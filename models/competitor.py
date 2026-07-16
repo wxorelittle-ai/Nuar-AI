@@ -69,6 +69,10 @@ class SourceSnapshot:
     subscribers: int | None = None
     posts_last_week: int | None = None
     latest_post_text: str = ""
+    # Тексты последних постов — корпус для анализа форматов конкурента.
+    # Раньше парсер скачивал 30 постов и оставлял только последний; тексты нужны,
+    # чтобы понимать, какие форматы у конкурента есть, а каких нет.
+    recent_post_texts: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -78,7 +82,11 @@ class SourceSnapshot:
     @classmethod
     def from_dict(cls, d: dict) -> "SourceSnapshot":
         reviews = [Review.from_dict(r) for r in d.get("recent_reviews", [])]
-        fields = {k: d.get(k) for k in cls.__dataclass_fields__ if k != "recent_reviews"}
+        skip = {"recent_reviews"}
+        fields = {k: d.get(k) for k in cls.__dataclass_fields__ if k not in skip}
+        # старые снимки в хранилище поля не имеют — не падать на них
+        if fields.get("recent_post_texts") is None:
+            fields["recent_post_texts"] = []
         obj = cls(**fields)
         obj.recent_reviews = reviews
         return obj

@@ -84,6 +84,16 @@ def _competitor_obs() -> list[dict]:
         return []
 
 
+def _gaps() -> dict:
+    """Свободные форматы у конкурентов (пусто, если нет корпуса — это нормально)."""
+    try:
+        from agents.competitor_scraper.gaps import latest_report
+        return latest_report().to_dict()
+    except Exception as exc:
+        log.debug("Окна возможностей недоступны: %s", exc)
+        return {}
+
+
 # ── Программа ─────────────────────────────────────────────────────────
 def programma(*, year: int | None = None, month: int | None = None, n: int = 5,
               use_llm: bool = True, with_trends: bool = False) -> dict:
@@ -97,8 +107,10 @@ def programma(*, year: int | None = None, month: int | None = None, n: int = 5,
     occasions = [o for o in cal.occasions_for(year, month) if o.date >= today_iso]
     trends = _trend_lines(force=with_trends)
     obs = _competitor_obs()
+    gaps = _gaps()
     concepts, mode = engine.generate(
-        dna, occasions, n=n, trends=trends, competitor_obs=obs, use_llm=use_llm)
+        dna, occasions, n=n, trends=trends, competitor_obs=obs,
+        free_formats=gaps.get("free") or [], use_llm=use_llm)
     _attach_weather(concepts, dna.city)
     return {
         "year": year, "month": month, "month_name": MONTHS_RU[month],
@@ -106,6 +118,7 @@ def programma(*, year: int | None = None, month: int | None = None, n: int = 5,
         "dna": dna.to_dict(),
         "occasions": [o.to_dict() for o in occasions],
         "trends": trends,
+        "gaps": gaps,
         "concepts": [c.to_dict() for c in concepts],
         "notice": ("" if occasions else
                    "В этом месяце поводы уже прошли — выберите следующий месяц."),

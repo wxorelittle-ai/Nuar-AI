@@ -27,6 +27,28 @@ _PARTNER_BY_KIND = {
 }
 
 
+# Какой свободный формат уместен под тип повода: джем должен ссылаться на
+# «Джаз и блюз», а не на случайный «Кинопоказ»
+_FORMAT_BY_KIND = {
+    "music": ["Джаз и блюз", "Живая музыка"],
+    "cinema": ["Кинопоказ"],
+    "bar": ["Винный вечер", "Дегустация", "Коктейльный вечер", "Мастер-класс"],
+    "cultural": ["Лекция и книжный клуб", "Поэзия и арт", "Кинопоказ", "Квиз и игры"],
+    "seasonal": ["Джаз и блюз", "Живая музыка", "Поэзия и арт"],
+    "civic": ["Живая музыка", "Дегустация", "Винный вечер"],
+}
+
+
+def _free_format_for(kind: str, free: list[str], fallback_idx: int) -> str:
+    """Свободный формат, подходящий поводу; иначе — по кругу, чтобы не повторяться."""
+    if not free:
+        return ""
+    for wanted in _FORMAT_BY_KIND.get(kind, []):
+        if wanted in free:
+            return wanted
+    return free[fallback_idx % len(free)]
+
+
 def _partner_for(kind: str, dna: VenueDNA) -> str:
     wanted = _PARTNER_BY_KIND.get(kind, [])
     for w in wanted:
@@ -41,7 +63,8 @@ def _kpi_for(occ: Occasion) -> str:
     return "трафик в будний вечер (обычно слабый) + новые гости с афиши"
 
 
-def _template_concept(occ: Occasion, dna: VenueDNA, competitor_hint: str = "") -> EventConcept:
+def _template_concept(occ: Occasion, dna: VenueDNA, competitor_hint: str = "",
+                      free_formats: list[str] | None = None) -> EventConcept:
     partner = _partner_for(occ.kind, dna)
     kind = "collab"
     mechanics = [occ.fit] if occ.fit else []
@@ -54,7 +77,12 @@ def _template_concept(occ: Occasion, dna: VenueDNA, competitor_hint: str = "") -
     else:
         mechanics += ["тематическая подача", "живая музыка фоном"]
 
-    diff = competitor_hint or "у конкурентов обычно «просто живая музыка» без сюжета — вы заходите форматом"
+    if free_formats:
+        diff = (f"в постах конкурентов не встречается формат «{free_formats[0]}» — "
+                f"есть шанс зайти первыми в округе")
+    else:
+        diff = competitor_hint or ("у конкурентов обычно «просто живая музыка» без сюжета — "
+                                   "вы заходите форматом")
     risk = ("тематика нишевая — тизерить заранее и объяснять формат"
             if not occ.festive or occ.kind in ("cinema", "cultural")
             else "стандартный риск низкой явки в будни — усилить анонсом")
@@ -79,20 +107,28 @@ def _rank(occasions: list[Occasion]) -> list[Occasion]:
 
 
 def template_concepts(dna: VenueDNA, occasions: list[Occasion], *, n: int = 5,
-                      competitor_obs: list[dict] | None = None) -> list[EventConcept]:
+                      competitor_obs: list[dict] | None = None,
+                      free_formats: list[str] | None = None) -> list[EventConcept]:
     hint = ""
     if competitor_obs:
         names = [o.get("competitor") for o in competitor_obs if o.get("competitor")]
         if names:
             hint = (f"конкуренты ({', '.join(dict.fromkeys(names))}) активны — "
                     f"перехватите инфоповод собственным форматом")
-    return [_template_concept(o, dna, hint) for o in _rank(occasions)[:n]]
+    # Свободный формат подбираем под тип повода, а не по кругу
+    free = free_formats or []
+    out = []
+    for i, o in enumerate(_rank(occasions)[:n]):
+        fmt = _free_format_for(o.kind, free, i)
+        out.append(_template_concept(o, dna, hint, [fmt] if fmt else []))
+    return out
 
 
 # ── LLM-путь ──────────────────────────────────────────────────────────
 def build_prompt(dna: VenueDNA, occasions: list[Occasion], *, n: int,
                  trends: list[str] | None = None,
-                 competitor_obs: list[dict] | None = None) -> str:
+                 competitor_obs: list[dict] | None = None,
+                 free_formats: list[str] | None = None) -> str:
     occ_lines = "\n".join(
         f"- {o.date} ({o.weekday}) {o.title} [{o.kind}] — {o.fit}" for o in occasions)
     trend_block = ""
@@ -104,6 +140,10 @@ def build_prompt(dna: VenueDNA, occasions: list[Occasion], *, n: int,
         if names:
             comp_block = ("\nКонкуренты активны: " + ", ".join(names) +
                           ". Предложи форматы, которых у них нет.")
+    if free_formats:
+        comp_block += ("\nФорматы, НЕ встречающиеся в постах конкурентов (окно — можно зайти "
+                       "первыми в округе): " + ", ".join(free_formats) +
+                       ". По возможности обыграй их.")
     return (
         f"{dna.brief()}\n\n"
         f"Поводы ближайшего месяца:\n{occ_lines}{trend_block}{comp_block}\n\n"
@@ -155,11 +195,13 @@ def _concept_from_dict(d: dict) -> EventConcept:
 def llm_concepts(dna: VenueDNA, occasions: list[Occasion], *, n: int = 5,
                  trends: list[str] | None = None,
                  competitor_obs: list[dict] | None = None,
+                 free_formats: list[str] | None = None,
                  llm_key: str | None = None) -> list[EventConcept]:
     """Может бросить исключение — вызывающий откатывается на шаблон."""
     from agents.llm.service import chat, MAITRE_SYSTEM
     from agents.llm.base import ChatMessage
-    prompt = build_prompt(dna, occasions, n=n, trends=trends, competitor_obs=competitor_obs)
+    prompt = build_prompt(dna, occasions, n=n, trends=trends, competitor_obs=competitor_obs,
+                          free_formats=free_formats)
     text = chat([ChatMessage("system", MAITRE_SYSTEM), ChatMessage("user", prompt)],
                 key=llm_key, temperature=0.8, max_tokens=2000)
     data = _parse_json_array(text)
@@ -182,14 +224,17 @@ def llm_concepts(dna: VenueDNA, occasions: list[Occasion], *, n: int = 5,
 def generate(dna: VenueDNA, occasions: list[Occasion], *, n: int = 5,
              trends: list[str] | None = None,
              competitor_obs: list[dict] | None = None,
+             free_formats: list[str] | None = None,
              use_llm: bool = True, llm_key: str | None = None) -> tuple[list[EventConcept], str]:
     """Возвращает (концепты, режим). режим: 'llm' | 'template' | 'template (LLM недоступен)'."""
     if use_llm:
         try:
             return llm_concepts(dna, occasions, n=n, trends=trends,
-                                competitor_obs=competitor_obs, llm_key=llm_key), "llm"
+                                competitor_obs=competitor_obs, free_formats=free_formats,
+                                llm_key=llm_key), "llm"
         except Exception as exc:
             log.info("LLM-движок недоступен, откат на шаблон: %s", exc)
-            return template_concepts(dna, occasions, n=n, competitor_obs=competitor_obs), \
-                "template (LLM недоступен)"
-    return template_concepts(dna, occasions, n=n, competitor_obs=competitor_obs), "template"
+            return template_concepts(dna, occasions, n=n, competitor_obs=competitor_obs,
+                                     free_formats=free_formats), "template (LLM недоступен)"
+    return template_concepts(dna, occasions, n=n, competitor_obs=competitor_obs,
+                             free_formats=free_formats), "template"

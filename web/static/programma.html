@@ -70,6 +70,10 @@
   .teaser{background:var(--bottle);border:1px solid rgba(201,162,39,.18);border-radius:var(--r-ctrl);padding:12px 14px;margin-top:12px;font-size:13.5px;color:#cfe3d8}
   .teaser .lab{color:#8fb3a5}
   .tags{margin-top:10px}.tags i{font-style:normal;font-family:var(--data);font-size:11px;color:var(--silver);border:1px solid var(--line);border-radius:20px;padding:2px 8px;margin-right:6px}
+  .grow{display:flex;align-items:center;gap:14px;padding:10px 4px;border-bottom:1px solid var(--line)}
+  .grow:last-child{border-bottom:none}
+  .grow .name{font-weight:600;min-width:160px}
+  .grow .lv{font-family:var(--data);font-size:12.5px;color:var(--silver);margin-left:auto}
   .wx{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:10px 12px;border-radius:var(--r-ctrl);border:1px solid var(--line);background:rgba(255,255,255,.02);font-size:13px}
   .wx.bad{border-color:rgba(229,115,94,.35);background:rgba(229,115,94,.07)}
   .wx .t{font-family:var(--data);font-size:12px;color:var(--porcelain);white-space:nowrap}
@@ -217,6 +221,19 @@ function occStrip(occ){
   return `<div class="section"><span class="eyebrow">Поводы месяца</span><div class="occ">${items}</div></div>`;
 }
 
+function gapsBlock(g){
+  if(!g||!g.notice)return '';
+  const free=(g.free||[]).map(f=>`<i>${esc(f)}</i>`).join('');
+  const occ=(g.occupied||[]).slice(0,6).map(o=>
+    `<div class="grow"><div class="name">${esc(o.name)}</div><div class="lv">${o.competitors.length} конкурент(ов) · ${o.mentions} упом.</div></div>`).join('');
+  return `<div class="section">
+    <span class="eyebrow">Окна возможностей · конкуренты</span>
+    <div class="notice">${esc(g.notice)}</div>
+    ${free?`<div class="card" style="padding:14px 18px"><span class="lab" style="font-family:var(--data);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--brass-dim)">Не встречается в их постах</span><div class="tags" style="margin-top:8px">${free}</div></div>`:''}
+    ${occ?`<div class="card" style="padding:8px 18px">${occ}</div>`:''}
+  </div>`;
+}
+
 function wxBlock(w){
   if(!w||!w.date)return '';
   const bad=w.outdoor_ok===false;
@@ -296,6 +313,7 @@ function render(d){
     <div class="section" style="margin-bottom:16px"><span class="eyebrow">Программа · ${esc(d.month_name)} <span class="pill">${esc(modeLabel)}</span></span></div>
     ${d.notice?`<div class="notice">${esc(d.notice)}</div>`:''}
     ${trends}
+    ${gapsBlock(d.gaps)}
     ${occStrip(d.occasions)}
     <div class="section"><span class="eyebrow">Идеи вечеров и коллабораций</span>${concepts||'<div class="notice">Нет идей — проверьте поводы месяца.</div>'}</div>`;
 }

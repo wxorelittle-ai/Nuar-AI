@@ -99,6 +99,28 @@ def test_template_partner_matches_music():
     assert "музык" in c.collab.lower()
 
 
+def test_free_format_matches_occasion_kind():
+    """Джем — про джаз, а не про случайный кинопоказ."""
+    free = ["Кинопоказ", "Джаз и блюз", "Винный вечер"]
+    assert engine._free_format_for("music", free, 0) == "Джаз и блюз"
+    assert engine._free_format_for("cinema", free, 0) == "Кинопоказ"
+    assert engine._free_format_for("bar", free, 0) == "Винный вечер"
+
+
+def test_free_format_falls_back_to_rotation():
+    free = ["Поэзия и арт"]
+    assert engine._free_format_for("music", free, 0) == "Поэзия и арт"
+    assert engine._free_format_for("music", [], 0) == ""
+
+
+def test_free_formats_reach_differentiation():
+    dna = VenueDNA()
+    music = cal.Occasion("День джаза", "2026-04-30", "music", "джем", "джаз-вечер")
+    c = engine._template_concept(music, dna, "", ["Джаз и блюз"])
+    assert "Джаз и блюз" in c.differentiation
+    assert "не встречается" in c.differentiation
+
+
 def test_template_competitor_hint_used():
     dna = VenueDNA()
     occ = cal.occasions_for(2026, 10)

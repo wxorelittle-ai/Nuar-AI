@@ -438,6 +438,17 @@ def save_venue(req: VenueRequest) -> JSONResponse:
     return JSONResponse({"venue": dna.to_dict()})
 
 
+@app.get("/api/intel/gaps")
+def api_gaps() -> JSONResponse:
+    """Форматы, не встречающиеся в постах конкурентов (окна возможностей)."""
+    try:
+        from agents.competitor_scraper.gaps import latest_report
+        return JSONResponse(latest_report().to_dict())
+    except Exception as exc:
+        log.exception("Ошибка анализа окон возможностей")
+        return JSONResponse({"error": f"Ошибка: {exc}"}, status_code=500)
+
+
 @app.get("/api/programma")
 def api_programma(month: int = 0, n: int = 5, llm: int = 1, trends_on: int = 0) -> JSONResponse:
     try:
