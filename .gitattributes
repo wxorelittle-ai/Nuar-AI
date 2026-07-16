@@ -1,0 +1,15 @@
+# Нормализация переводов строк.
+#
+# На Windows core.autocrlf=true подставляет CRLF в рабочую копию. Для файлов,
+# которые ИСПОЛНЯЮТСЯ на Linux-сервере, это фатально: bash падает с
+# «\r: command not found», а деплой — вместе с ним. Здесь это запрещено явно,
+# независимо от настроек git у кого угодно.
+*.sh        text eol=lf
+Dockerfile  text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+Caddyfile   text eol=lf
+*.conf      text eol=lf
+
+# Остальное — на усмотрение git
+* text=auto

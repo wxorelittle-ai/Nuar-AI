@@ -178,6 +178,8 @@ def test_programma_drops_past_occasions(monkeypatch):
             return datetime(2026, 7, 16, 12, 0, tzinfo=timezone.utc)
 
     monkeypatch.setattr(svc, "datetime", FakeNow)
+    # Юнит-тест не должен ходить в сеть: погода — живой вызов Open-Meteo
+    monkeypatch.setattr("agents.weather.service.forecast", lambda city: [])
     data = svc.programma(n=5, use_llm=False, with_trends=False)
     assert data["occasions"], "должны остаться будущие поводы"
     assert all(o["date"] >= "2026-07-16" for o in data["occasions"])

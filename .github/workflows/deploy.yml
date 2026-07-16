@@ -1,0 +1,79 @@
+# МЭТР · CI/CD: тесты → выкатка на сервер.
+#
+# Срабатывает на push в main: сначала прогоняются тесты, и только если они
+# зелёные — код катится на сервер. Выкатка сама проверяет здоровье приложения
+# и откатывается, если оно не поднялось (см. deploy/remote_deploy.sh).
+#
+# Нужны секреты репозитория (Settings → Secrets and variables → Actions):
+#   DEPLOY_HOST     — IP или домен сервера (например 194.67.111.11)
+#   DEPLOY_USER     — пользователь SSH (например root)
+#   DEPLOY_SSH_KEY  — ПРИВАТНЫЙ ключ деплоя целиком, вместе со строками
+#                     -----BEGIN OPENSSH PRIVATE KEY----- / -----END ...-----
+# Пока секреты не заданы, шаг выкатки честно пропускается (сборка зелёная).
+name: Тесты и деплой
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # кнопка «Run workflow» для ручной выкатки
+
+# Две выкатки одновременно ломают друг друга — держим очередь
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Тесты
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Установка зависимостей
+        run: pip install -r requirements.txt
+      - name: pytest
+        run: python -m pytest -q
+
+  deploy:
+    name: Выкатка на сервер
+    needs: test              # без зелёных тестов на прод не выкатываемся
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Проверить, настроены ли секреты
+        id: check
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -z "$DEPLOY_HOST" ]; then
+            echo "Секреты деплоя не заданы — выкатка пропущена."
+            echo "Задайте DEPLOY_HOST / DEPLOY_USER / DEPLOY_SSH_KEY в настройках репозитория."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Подготовить SSH-ключ
+        if: steps.check.outputs.ready == 'true'
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Выкатка
+        if: steps.check.outputs.ready == 'true'
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+              "${DEPLOY_USER}@${DEPLOY_HOST}" 'bash -s' < deploy/remote_deploy.sh
