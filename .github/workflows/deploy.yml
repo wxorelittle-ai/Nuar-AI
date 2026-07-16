@@ -49,14 +49,27 @@ jobs:
         id: check
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
-          if [ -z "$DEPLOY_HOST" ]; then
+          # Проверяем КАЖДЫЙ секрет: без DEPLOY_USER ssh уйдёт в «@host» и упадёт
+          missing=""
+          [ -z "$DEPLOY_HOST" ]    && missing="$missing DEPLOY_HOST"
+          [ -z "$DEPLOY_USER" ]    && missing="$missing DEPLOY_USER"
+          [ -z "$DEPLOY_SSH_KEY" ] && missing="$missing DEPLOY_SSH_KEY"
+
+          if [ -n "$missing" ] && [ -z "$DEPLOY_HOST$DEPLOY_USER$DEPLOY_SSH_KEY" ]; then
             echo "Секреты деплоя не заданы — выкатка пропущена."
-            echo "Задайте DEPLOY_HOST / DEPLOY_USER / DEPLOY_SSH_KEY в настройках репозитория."
             echo "ready=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          if [ -n "$missing" ]; then
+            echo "✗ Заданы не все секреты. Не хватает:$missing"
+            echo "  Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          echo "✓ Все три секрета на месте"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
 
       - name: Подготовить SSH-ключ
         if: steps.check.outputs.ready == 'true'
@@ -65,9 +78,47 @@ jobs:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          # tr -d '\r' — ключ, скопированный на Windows (`type key | clip`), приезжает
+          # с CRLF, и OpenSSH отвергает его как «invalid format». Вычищаем.
+          printf '%s\n' "$DEPLOY_SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+
+          # Диагностика без утечки секрета: только форма ключа, не содержимое
+          if ! head -1 ~/.ssh/deploy_key | grep -q 'BEGIN .*PRIVATE KEY'; then
+            echo "✗ DEPLOY_SSH_KEY не похож на приватный ключ."
+            echo "  Первая строка должна быть -----BEGIN OPENSSH PRIVATE KEY-----"
+            echo "  Похоже, вставлен ПУБЛИЧНЫЙ ключ (.pub) или ключ обрезан."
+            exit 1
+          fi
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
+            echo "✗ Ключ нечитаем (повреждён или задан с парольной фразой)."
+            exit 1
+          fi
+          echo "✓ Ключ валиден, отпечаток:"
+          ssh-keygen -lf ~/.ssh/deploy_key
+
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          if [ ! -s ~/.ssh/known_hosts ]; then
+            echo "✗ Не удалось получить host key с $DEPLOY_HOST — хост недоступен по 22 порту?"
+            exit 1
+          fi
+          echo "✓ Host key получен"
+
+      - name: Проверить связь с сервером
+        if: steps.check.outputs.ready == 'true'
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          if ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+                 -o ConnectTimeout=15 "${DEPLOY_USER}@${DEPLOY_HOST}" "echo CONNECT_OK"; then
+            echo "✓ Вход по ключу работает"
+          else
+            echo "✗ Сервер не пускает по этому ключу."
+            echo "  Проверьте: публичный ключ в ~/.ssh/authorized_keys на сервере,"
+            echo "  DEPLOY_USER=$DEPLOY_USER, и что в секрет попал ПРИВАТНЫЙ ключ целиком."
+            exit 1
+          fi
 
       - name: Выкатка
         if: steps.check.outputs.ready == 'true'
