@@ -74,6 +74,7 @@ class EventConcept:
     teaser: str = ""                           # готовый мини-анонс (голос бренда)
     tags: list[str] = field(default_factory=list)
     source: str = "template"                   # template | llm
+    weather: dict = field(default_factory=dict)  # прогноз на дату, если в окне (см. agents/weather)
 
     def to_dict(self) -> dict:
         return asdict(self)

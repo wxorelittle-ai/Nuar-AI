@@ -61,6 +61,20 @@ def _trend_lines(*, force: bool = False) -> list[str]:
     return list(lines)
 
 
+def _attach_weather(concepts: list, city: str) -> None:
+    """Вешает прогноз на концепты, чьи даты попадают в окно (16 дней)."""
+    try:
+        from agents.weather.service import forecast
+        by_date = {d.date: d for d in forecast(city)}
+    except Exception as exc:
+        log.debug("Погода недоступна: %s", exc)
+        return
+    for c in concepts:
+        day = by_date.get(c.date)
+        if day:
+            c.weather = day.to_dict()
+
+
 def _competitor_obs() -> list[dict]:
     try:
         from agents.content.ideas import _observations_from_repo
@@ -85,6 +99,7 @@ def programma(*, year: int | None = None, month: int | None = None, n: int = 5,
     obs = _competitor_obs()
     concepts, mode = engine.generate(
         dna, occasions, n=n, trends=trends, competitor_obs=obs, use_llm=use_llm)
+    _attach_weather(concepts, dna.city)
     return {
         "year": year, "month": month, "month_name": MONTHS_RU[month],
         "mode": mode,

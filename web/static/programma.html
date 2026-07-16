@@ -70,6 +70,11 @@
   .teaser{background:var(--bottle);border:1px solid rgba(201,162,39,.18);border-radius:var(--r-ctrl);padding:12px 14px;margin-top:12px;font-size:13.5px;color:#cfe3d8}
   .teaser .lab{color:#8fb3a5}
   .tags{margin-top:10px}.tags i{font-style:normal;font-family:var(--data);font-size:11px;color:var(--silver);border:1px solid var(--line);border-radius:20px;padding:2px 8px;margin-right:6px}
+  .wx{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:10px 12px;border-radius:var(--r-ctrl);border:1px solid var(--line);background:rgba(255,255,255,.02);font-size:13px}
+  .wx.bad{border-color:rgba(229,115,94,.35);background:rgba(229,115,94,.07)}
+  .wx .t{font-family:var(--data);font-size:12px;color:var(--porcelain);white-space:nowrap}
+  .wx .a{color:#cfd6df}
+  .wx.bad .a{color:#f0b8ac}
   .acts{margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .acts .msg{font-size:12.5px;color:var(--silver)}
   .camp{margin-top:14px;border-top:1px solid var(--line);padding-top:14px;display:none}
@@ -212,6 +217,14 @@ function occStrip(occ){
   return `<div class="section"><span class="eyebrow">Поводы месяца</span><div class="occ">${items}</div></div>`;
 }
 
+function wxBlock(w){
+  if(!w||!w.date)return '';
+  const bad=w.outdoor_ok===false;
+  return `<div class="wx ${bad?'bad':''}">
+    <span class="t">${esc(w.condition)} · ${Math.round(w.tmin)}…${Math.round(w.tmax)}°C${w.precip>0?(' · '+w.precip+' мм'):''}</span>
+    <span class="a">${esc(w.advice)}</span></div>`;
+}
+
 function conceptCard(c,i){
   const mech=(c.mechanics||[]).map(m=>`<li>${esc(m)}</li>`).join('');
   const tags=(c.tags||[]).map(t=>`<i>${esc(t)}</i>`).join('');
@@ -226,6 +239,7 @@ function conceptCard(c,i){
       ${c.kpi?`<div><span class="lab">Как измерим</span><div class="val">${esc(c.kpi)}</div></div>`:''}
       ${c.risk?`<div><span class="lab">Риск</span><div class="val">${esc(c.risk)}</div></div>`:''}
     </div>
+    ${wxBlock(c.weather)}
     ${c.teaser?`<div class="teaser"><span class="lab">Готовый анонс</span><br>${esc(c.teaser)}</div>`:''}
     ${tags?`<div class="tags">${tags}</div>`:''}
     ${c.date?`<div class="acts">
