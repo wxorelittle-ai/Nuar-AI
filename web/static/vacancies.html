@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МЭТР — вакансии и кандидаты</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24'%3E%3Cpath d='M4 4 L26 10 L26 14 L4 20 Z' fill='%23C9A227'/%3E%3Cpath d='M56 4 L34 10 L34 14 L56 20 Z' fill='%23C9A227'/%3E%3Crect x='26' y='8' width='8' height='8' rx='1.5' fill='%23C9A227'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --graphite:#14171A;--graphite-2:#1C2024;--bottle:#0F2B25;--brass:#C9A227;--brass-dim:#8A6F1C;
+    --porcelain:#F5F1E8;--silver:#8B95A3;--line:#2B3036;--up:#2ECC8F;--warn:#E5735E;
+    --voice:'Playfair Display',Georgia,serif;--ui:'Inter',system-ui,-apple-system,sans-serif;--data:'JetBrains Mono',monospace;
+    --r-ctrl:8px;--r-panel:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--graphite);color:var(--porcelain);font-family:var(--ui);font-size:16px;line-height:1.6}
+  .wrap{max-width:1000px;margin:0 auto;padding:22px 24px 80px}
+  a{color:var(--brass);text-decoration:none}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:4px 0 26px;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .brand .word{font-family:var(--voice);font-size:24px;font-weight:500;letter-spacing:.12em}
+  .nav a{font-size:14px;color:var(--silver);margin-left:16px}.nav a:hover{color:var(--porcelain)}
+  .nav a.on{color:var(--porcelain)}
+  .eyebrow{font-family:var(--data);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--brass-dim)}
+  h1{font-family:var(--voice);font-size:28px;font-weight:500;margin:6px 0 8px}
+  .lead{color:var(--silver);font-size:15px;margin-bottom:22px;max-width:78ch}
+  .card{background:var(--graphite-2);border:1px solid var(--line);border-radius:var(--r-panel);padding:20px 22px;margin-bottom:20px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+  .field{display:flex;flex-direction:column;flex:1;min-width:150px}
+  label{font-size:12.5px;color:var(--silver);margin-bottom:6px}
+  input,textarea,select{background:var(--graphite);border:1px solid var(--line);color:var(--porcelain);padding:11px 13px;border-radius:var(--r-ctrl);font-size:14px;outline:none;font-family:var(--ui)}
+  input:focus,textarea:focus{border-color:var(--brass)}
+  textarea{resize:vertical;min-height:60px}
+  .btn{font-family:var(--ui);font-size:14px;font-weight:500;padding:11px 18px;border-radius:var(--r-ctrl);border:none;background:var(--brass);color:var(--graphite);cursor:pointer}
+  .btn:hover{filter:brightness(1.06)}.btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--porcelain)}
+  .btn.sm{padding:6px 12px;font-size:12.5px}
+  .hint{font-size:12px;color:#5a6472;margin-top:8px}
+  .notice{border:1px solid rgba(242,193,78,.28);background:rgba(242,193,78,.06);color:#e8cd97;padding:11px 16px;border-radius:var(--r-ctrl);font-size:13px;margin-bottom:18px}
+  .muted{color:var(--silver)}
+
+  .vac{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-ctrl);margin-bottom:8px;cursor:pointer;background:var(--graphite-2)}
+  .vac:hover{border-color:var(--brass-dim)}
+  .vac.on{border-color:var(--brass)}
+  .vac .t{font-weight:600}.vac .m{font-size:12.5px;color:var(--silver)}
+  .vac .rm{margin-left:auto}
+
+  .cand{border:1px solid var(--line);border-radius:var(--r-ctrl);padding:14px 16px;margin-bottom:10px;background:var(--graphite-2)}
+  .cand .head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .cand .rank{font-family:var(--data);font-size:13px;color:var(--graphite);background:var(--brass);border-radius:6px;padding:1px 8px}
+  .cand .nm{font-weight:600;font-size:16px}
+  .cand .sc{margin-left:auto;font-family:var(--data);font-size:14px}
+  .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:8px 0}
+  .bar>i{display:block;height:100%;background:var(--brass)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chip{font-size:11.5px;border-radius:20px;padding:2px 9px;border:1px solid var(--line);color:var(--silver)}
+  .chip.ok{color:var(--up);border-color:rgba(46,204,143,.35)}
+  .chip.no{color:var(--warn);border-color:rgba(229,115,94,.35)}
+  .badge{font-family:var(--data);font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:2px 8px;border-radius:20px;border:1px solid var(--line)}
+  .badge.low{color:var(--up);border-color:rgba(46,204,143,.35)}
+  .badge.mid{color:#e8cd97;border-color:rgba(201,162,39,.35)}
+  .badge.high{color:var(--warn);border-color:rgba(229,115,94,.4)}
+  .badge.dup{color:var(--warn);border-color:rgba(229,115,94,.4)}
+  .flags{font-size:12.5px;color:var(--silver);margin-top:6px}
+  .footer{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);color:var(--silver);font-size:13px}
+  details summary{cursor:pointer;color:var(--silver);font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 60 24" width="50" height="20"><path d="M4 4 L26 10 L26 14 L4 20 Z" fill="#C9A227"></path><path d="M56 4 L34 10 L34 14 L56 20 Z" fill="#C9A227"></path><rect x="26" y="8" width="8" height="8" rx="1.5" fill="#C9A227"></rect></svg>
+      <span class="word">МЭТР</span>
+    </div>
+    <div class="nav"><a href="/">Анализ</a><a href="/programma">Программа</a><a href="/content">Контент</a><a href="/trends">Тренды</a><a href="/vacancies" class="on">Вакансии</a><a href="/crm">Гости</a><a href="/settings">Настройки</a><a href="/logout">Выход</a></div>
+  </div>
+
+  <span class="eyebrow">Мэтр отбирает</span>
+  <h1>Вакансии и кандидаты</h1>
+  <div class="lead">Создайте вакансию с требованиями, добавляйте резюме (вставкой или из отклика) — МЭТР оценит соответствие, отметит признаки ИИ-текста и списывание между откликами, выстроит рейтинг.</div>
+
+  <div class="notice">Автозагрузку резюме из HeadHunter/Rabota.ru подключим позже: их базы платные и требуют аккаунт работодателя (152-ФЗ). Пока добавляйте резюме вставкой текста — вся оценка работает уже сейчас.</div>
+
+  <!-- создание вакансии -->
+  <div class="card">
+    <span class="eyebrow">Новая вакансия</span>
+    <div class="row" style="margin-top:12px">
+      <div class="field" style="min-width:220px"><label>Название</label><input id="v_title" placeholder="Бармен"></div>
+      <div class="field" style="max-width:130px"><label>Мин. опыт, лет</label><input id="v_exp" type="number" min="0" value="0"></div>
+      <div class="field" style="max-width:160px"><label>Город</label><input id="v_city" placeholder="Тюмень"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div class="field"><label>Обязательные навыки (через запятую)</label><input id="v_must" placeholder="бармен, коктейли, касса"></div>
+      <div class="field"><label>Желательные (через запятую)</label><input id="v_nice" placeholder="кофе, английский"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="createVac">Создать вакансию</button>
+    </div>
+  </div>
+
+  <span class="eyebrow">Вакансии</span>
+  <div id="vacList" style="margin:12px 0 24px"></div>
+
+  <div id="detail"></div>
+
+  <div class="footer">МЭТР / MAÎTRE · оценка — вспомогательная. Признаки ИИ-текста не приговор: решение за человеком</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let VACS=[], SEL=null;
+
+async function loadVacs(){
+  VACS=(await (await fetch('/api/vacancies')).json()).vacancies||[];
+  $('vacList').innerHTML = VACS.length? VACS.map(v=>`
+    <div class="vac ${v.id===SEL?'on':''}" onclick="selectVac('${v.id}')">
+      <div><div class="t">${esc(v.title)}</div>
+        <div class="m">обяз.: ${(v.must_have||[]).map(esc).join(', ')||'—'}${v.min_experience?(' · опыт от '+v.min_experience+' лет'):''}</div></div>
+      <button class="btn ghost sm rm" onclick="event.stopPropagation();delVac('${v.id}')">удалить</button>
+    </div>`).join('') : '<div class="muted">Пока нет вакансий — создайте первую выше.</div>';
+}
+
+$('createVac').onclick=async()=>{
+  const body={title:$('v_title').value.trim(),
+    must_have:$('v_must').value.split(',').map(s=>s.trim()).filter(Boolean),
+    nice_to_have:$('v_nice').value.split(',').map(s=>s.trim()).filter(Boolean),
+    min_experience:parseFloat($('v_exp').value)||0, city:$('v_city').value.trim()};
+  if(!body.title){alert('Укажите название вакансии');return;}
+  const d=await (await fetch('/api/vacancies',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+  $('v_title').value='';$('v_must').value='';$('v_nice').value='';$('v_exp').value='0';$('v_city').value='';
+  SEL=d.vacancy.id; await loadVacs(); selectVac(SEL);
+};
+
+async function delVac(id){
+  if(!confirm('Удалить вакансию и всех её кандидатов?'))return;
+  await fetch('/api/vacancies/'+id,{method:'DELETE'});
+  if(SEL===id){SEL=null;$('detail').innerHTML='';}
+  loadVacs();
+}
+
+async function selectVac(id){ SEL=id; await loadVacs(); renderDetail(); }
+
+async function renderDetail(){
+  if(!SEL){$('detail').innerHTML='';return;}
+  const d=await (await fetch('/api/vacancies/'+SEL+'/ranking')).json();
+  if(d.error){$('detail').innerHTML=`<div class="notice">${esc(d.error)}</div>`;return;}
+  const v=d.vacancy;
+  $('detail').innerHTML=`
+    <div class="card">
+      <span class="eyebrow">Добавить кандидата · ${esc(v.title)}</span>
+      <div class="row" style="margin-top:12px">
+        <div class="field" style="max-width:220px"><label>Имя</label><input id="c_name" placeholder="Иван Петров"></div>
+        <div class="field" style="max-width:220px"><label>Контакт (необяз.)</label><input id="c_contact" placeholder="телефон / телеграм"></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div class="field"><label>Текст резюме</label><textarea id="c_text" style="min-height:120px" placeholder="Вставьте текст резюме или отклика"></textarea></div>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="addCand">Оценить и добавить</button><span class="hint" id="addMsg" style="margin:0"></span></div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px">
+      <span class="eyebrow">Рейтинг кандидатов · ${d.count}</span>
+      ${d.duplicates_found?`<span class="badge dup">совпадений: ${d.duplicates_found}</span>`:''}
+    </div>
+    <div id="candList"></div>`;
+  $('addCand').onclick=addCand;
+  renderCands(d.candidates);
+}
+
+function renderCands(list){
+  if(!list.length){$('candList').innerHTML='<div class="muted">Кандидатов пока нет.</div>';return;}
+  $('candList').innerHTML=list.map(c=>{
+    const fit=c.fit||{}, ai=c.ai||{}, dup=c.duplicate||{};
+    const aiCls=ai.level==='высокая'?'high':ai.level==='средняя'?'mid':'low';
+    const must=(fit.matched_must||[]).map(s=>`<span class="chip ok">${esc(s)}</span>`).join('')
+             +(fit.missing_must||[]).map(s=>`<span class="chip no">нет: ${esc(s)}</span>`).join('');
+    const nice=(fit.matched_nice||[]).map(s=>`<span class="chip">${esc(s)}</span>`).join('');
+    return `<div class="cand">
+      <div class="head">
+        <span class="rank">#${c.rank}</span>
+        <span class="nm">${esc(c.name)}</span>
+        ${c.contact?`<span class="muted" style="font-size:12.5px">${esc(c.contact)}</span>`:''}
+        <span class="sc">${fit.score||0}<span class="muted">/100</span></span>
+      </div>
+      <div class="bar"><i style="width:${fit.score||0}%"></i></div>
+      <div class="chips">${must}${nice}</div>
+      <div class="chips" style="margin-top:8px">
+        <span class="badge ${aiCls}">ИИ-текст: ${esc(ai.level||'—')}${ai.score?(' '+ai.score):''}</span>
+        ${dup.other_name?`<span class="badge dup">похоже на «${esc(dup.other_name)}» (${Math.round(dup.ratio*100)}%)</span>`:''}
+        ${fit.experience_years!=null?`<span class="chip">опыт ~${fit.experience_years} лет</span>`:''}
+      </div>
+      ${(ai.flags&&ai.flags.length)?`<div class="flags">Сигналы: ${ai.flags.map(esc).join(' · ')}</div>`:''}
+      <details><summary>текст резюме · удалить</summary>
+        <div style="white-space:pre-wrap;font-size:13px;color:#cfd6df;margin:8px 0">${esc(c.text)}</div>
+        ${ai.disclaimer?`<div class="hint">${esc(ai.disclaimer)}</div>`:''}
+        <button class="btn ghost sm" onclick="delCand('${c.id}')">удалить кандидата</button>
+      </details>
+    </div>`;
+  }).join('');
+}
+
+async function addCand(){
+  const name=$('c_name').value.trim(), text=$('c_text').value.trim(), contact=$('c_contact').value.trim();
+  if(!text){$('addMsg').textContent='Вставьте текст резюме';return;}
+  $('addCand').disabled=true;$('addMsg').textContent='Оцениваю…';
+  const r=await fetch('/api/vacancies/'+SEL+'/candidates',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,text,contact})});
+  const d=await r.json();
+  $('addCand').disabled=false;
+  if(d.error){$('addMsg').textContent=d.error;return;}
+  renderDetail();
+}
+
+async function delCand(id){
+  await fetch('/api/candidates/'+id,{method:'DELETE'});
+  renderDetail();
+}
+
+loadVacs();
+</script>
+</body>
+</html>

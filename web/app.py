@@ -28,6 +28,7 @@ from agents.llm.base import LLMError
 from agents.content import service as content
 from agents.moderation import service as moderation
 from agents.recruiting import service as recruiting
+from agents.recruiting import candidates
 from agents.social import service as social
 from agents.crm import service as crm
 from agents.trends import service as trends
@@ -123,6 +124,23 @@ class VenueRequest(BaseModel):
     venue: dict = {}
 
 
+class VacancyRequest(BaseModel):
+    id: str | None = None
+    title: str = ""
+    must_have: list[str] = []
+    nice_to_have: list[str] = []
+    min_experience: float = 0.0
+    city: str = ""
+    notes: str = ""
+
+
+class CandidateRequest(BaseModel):
+    name: str = ""
+    text: str = ""
+    source: str = "paste"
+    contact: str = ""
+
+
 class CampaignRequest(BaseModel):
     concept: dict
     networks: list[str] = ["vk"]
@@ -213,6 +231,11 @@ def trends_page() -> HTMLResponse:
 @app.get("/programma", response_class=HTMLResponse)
 def programma_page() -> HTMLResponse:
     return _page("programma.html")
+
+
+@app.get("/vacancies", response_class=HTMLResponse)
+def vacancies_page() -> HTMLResponse:
+    return _page("vacancies.html")
 
 
 # ── Анализ ────────────────────────────────────────────────────────────
@@ -359,6 +382,55 @@ def recruiting_market(city: str = "Тюмень", roles: str = "") -> JSONRespon
         log.exception("Ошибка анализа рынка труда")
         return JSONResponse({"error": f"Ошибка: {exc}"}, status_code=500)
     return JSONResponse(data)
+
+
+# ── Витрина вакансий и кандидатов («Мэтр отбирает») ───────────────────
+@app.get("/api/vacancies")
+def vacancies_list() -> dict:
+    return {"vacancies": [v.to_dict() for v in candidates.store.list_vacancies()]}
+
+
+@app.post("/api/vacancies")
+def vacancy_create(req: VacancyRequest) -> JSONResponse:
+    vac = candidates.create_vacancy(req.model_dump(exclude_none=True))
+    return JSONResponse({"vacancy": vac.to_dict()})
+
+
+@app.delete("/api/vacancies/{vid}")
+def vacancy_delete(vid: str) -> dict:
+    return {"ok": candidates.store.delete_vacancy(vid)}
+
+
+@app.post("/api/vacancies/{vid}/reevaluate")
+def vacancy_reevaluate(vid: str) -> JSONResponse:
+    try:
+        n = candidates.reevaluate_vacancy(vid)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=404)
+    return JSONResponse({"reevaluated": n})
+
+
+@app.get("/api/vacancies/{vid}/ranking")
+def vacancy_ranking(vid: str) -> JSONResponse:
+    try:
+        return JSONResponse(candidates.ranking(vid))
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=404)
+
+
+@app.post("/api/vacancies/{vid}/candidates")
+def candidate_add(vid: str, req: CandidateRequest) -> JSONResponse:
+    try:
+        cand = candidates.add_candidate(vid, name=req.name, text=req.text,
+                                        source=req.source, contact=req.contact)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    return JSONResponse({"candidate": cand.to_dict()})
+
+
+@app.delete("/api/candidates/{cid}")
+def candidate_delete(cid: str) -> dict:
+    return {"ok": candidates.store.delete_candidate(cid)}
 
 
 # ── Соцсети конкурентов («Мэтр наблюдает») ────────────────────────────
